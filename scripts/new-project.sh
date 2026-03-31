@@ -41,7 +41,7 @@ if ! command -v gh &>/dev/null; then
 fi
 
 echo "📥  Cloning starter kit..."
-gh repo clone afialho/ai-dev-starter-kit "$DEST" -- --quiet
+gh repo clone afialho/ai-dev-starter-kit "$DEST"
 ok "Cloned to $DEST"
 
 cd "$DEST"
