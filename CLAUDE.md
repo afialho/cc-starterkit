@@ -145,6 +145,47 @@ See `docs/TESTING.md` and `docs/BDD.md` for detailed guides.
 
 ---
 
+## Context Budget Protocol
+
+The main context window starts with ~45k tokens of system context (CLAUDE.md + Rules.md + Agents.md + hooks). The working budget is ~15–20k tokens before quality degrades. **Threshold: 60k tokens total estimated.**
+
+### Token estimation per operation
+| Operation | Estimated tokens |
+|-----------|-----------------|
+| File read (avg) | 1k |
+| Agent call | 8k |
+| Long response | 2k |
+| Phase completed | 3k |
+
+### Rules
+1. **Track after every phase or agent wave**: add to running estimate
+2. **At threshold (~60k total)**: write `.claude/checkpoint.md` and output: `↺ Contexto em ~60k — escrevi checkpoint. Recomendo /compact agora.`
+3. **After /compact or /clear**: context resets automatically — the SessionStart hook injects the checkpoint, then run `/resume`
+4. **Checkpoint format** (write to `.claude/checkpoint.md`):
+
+```markdown
+# Checkpoint — [timestamp]
+
+## Tarefa em andamento
+Skill: [/feature-dev | /plan | /agent-teams | etc.]
+Feature: [nome da feature]
+Phase: [N/Total] [Phase Name]
+
+## Arquivos criados/modificados
+- [path] — [o que foi feito]
+
+## Estado atual
+[O que já está completo. O que está funcionando. Testes passando.]
+
+## Próximo passo
+[Instrução exata de onde continuar — phase, step, arquivo, ação]
+
+## Decisões tomadas
+- [decisões relevantes que a próxima sessão precisa saber]
+```
+
+---
+
 ## Autonomous Agent Mode
 
 When executing complex tasks, orchestrate agent teams following **Agents.md**.

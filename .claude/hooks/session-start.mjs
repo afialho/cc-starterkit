@@ -69,6 +69,22 @@ async function main() {
   const stack = detectStack();
   const stackStr = stack.length > 0 ? stack.join(', ') : 'Not yet configured';
 
+  // Inject checkpoint if one exists (written after /clear or /compact)
+  const checkpointPath = '.claude/checkpoint.md';
+  let checkpointBlock = '';
+  if (existsSync(checkpointPath)) {
+    const checkpoint = readFileSync(checkpointPath, 'utf8').trim();
+    checkpointBlock = [
+      ``,
+      `## ↺ Checkpoint Restored`,
+      `Work was in progress when context was reset. Resume with \`/resume\`.`,
+      ``,
+      checkpoint,
+      ``,
+      `---`,
+    ].join('\n');
+  }
+
   const lines = [
     `# Session Start — ${projectName}`,
     ``,
@@ -107,7 +123,7 @@ async function main() {
 
   const output = {
     ...input,
-    additionalContext: lines.join('\n'),
+    additionalContext: checkpointBlock + lines.join('\n'),
   };
 
   process.stdout.write(JSON.stringify(output));
