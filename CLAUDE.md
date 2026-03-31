@@ -208,8 +208,10 @@ Suggestions: [list or "None"]
 
 | Skill              | Usage                                  | Purpose                                         |
 |--------------------|----------------------------------------|-------------------------------------------------|
+| `/build`           | `/build <raw idea>`                    | **Full lifecycle**: refine → plan → execute autonomously with parallel agent teams |
 | `/plan`            | `/plan [feature or task description]`  | Generate structured development plan            |
 | `/feature-dev`     | `/feature-dev [feature name]`          | Implement with full TDD + hexagonal workflow    |
 | `/frontend-design` | `/frontend-design [component or page]` | Design and implement production-grade UI        |
 | `/tdd`             | `/tdd [what to implement]`             | TDD workflow: red → green → refactor            |
 | `/hexagonal`       | `/hexagonal [component name]`          | Hexagonal architecture guidance                 |
+| `/agent-teams`     | `/agent-teams`                         | Multi-team parallel orchestration for large work |
