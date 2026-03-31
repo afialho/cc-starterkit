@@ -1,3 +1,10 @@
+---
+name: plan
+description: Generate a complete development plan with hexagonal architecture mapping, BDD scenarios, TDD test plan, agent wave decomposition, and git strategy before writing any code.
+disable-model-invocation: true
+argument-hint: <feature or task description>
+---
+
 # /plan — Development Planning
 
 Generate a complete, structured development plan before writing any code.

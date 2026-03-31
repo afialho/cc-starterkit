@@ -1,3 +1,10 @@
+---
+name: frontend-design
+description: Design and implement production-grade UI components with design contract, component hierarchy, TDD for frontend, accessibility checklist, and performance checklist.
+disable-model-invocation: true
+argument-hint: <component or page>
+---
+
 # /frontend-design — Frontend Design and Implementation
 
 Create distinctive, production-grade frontend interfaces.

@@ -1,3 +1,10 @@
+---
+name: tdd
+description: Guide Red→Green→Refactor TDD cycle for any implementation. Covers unit and integration test guidelines, mocking strategy, test smells to avoid, and TDD with hexagonal architecture.
+disable-model-invocation: true
+argument-hint: <what to implement>
+---
+
 # /tdd — Test-Driven Development Workflow
 
 Guide through the Red-Green-Refactor cycle for any implementation.

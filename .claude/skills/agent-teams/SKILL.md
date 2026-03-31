@@ -1,3 +1,9 @@
+---
+name: agent-teams
+description: Orchestrate multiple parallel agent teams for large-scale work. Token budget estimation, worktree isolation per team, wave decomposition, and handoff aggregation protocol.
+disable-model-invocation: true
+---
+
 # /agent-teams — Multi-Team Parallel Orchestration
 
 Orquestra múltiplos times de agentes em paralelo para trabalho de grande escala.

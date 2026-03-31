@@ -1,3 +1,10 @@
+---
+name: hexagonal
+description: Hexagonal (ports & adapters) architecture reference. Layer definitions, dependency rules, DI patterns, testing strategy per layer, and pre-commit checklist. Auto-loads when working on domain, application, ports, or infrastructure files.
+argument-hint: [component name]
+paths: src/domain/**, src/application/**, src/ports/**, src/infrastructure/**
+---
+
 # /hexagonal — Hexagonal Architecture Reference
 
 Guidance for implementing and validating hexagonal (ports & adapters) architecture.

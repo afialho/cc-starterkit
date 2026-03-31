@@ -1,3 +1,10 @@
+---
+name: feature-dev
+description: Implement a feature end-to-end with TDD (Red→Green→Refactor), hexagonal architecture, BDD (Cucumber), load tests (k6), Cypress E2E, and git worktree isolation. 7-phase workflow.
+disable-model-invocation: true
+argument-hint: <feature name>
+---
+
 # /feature-dev — Feature Implementation
 
 Extends the official Anthropic feature-dev workflow with project-specific requirements:
