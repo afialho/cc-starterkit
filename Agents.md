@@ -16,6 +16,27 @@
 
 ---
 
+## Dois Modelos de Orquestração
+
+### Modelo 1 — Time Único com Waves (este documento)
+Um time, waves sequenciais, até 5 agentes por wave.
+Use para: uma feature de complexidade média.
+
+### Modelo 2 — Múltiplos Times em Paralelo (`/agent-teams`)
+Vários times rodando simultaneamente, cada um com 3–5 agentes.
+O orquestrador estima budget de tokens (< 85k por time) antes de despachar.
+Use para: múltiplas features simultâneas ou features grandes decomponíveis.
+
+```
+Modelo 1 (este doc):          Modelo 2 (/agent-teams):
+  Orquestrador                  Orquestrador
+    Wave 1: [A, B, C]             Time Alpha → [A, B, C] ┐
+    Wave 2: [D, E]                Time Beta  → [D, E, F] ├ paralelo
+    Wave 3: [F]                   Time Gamma → [G, H, I] ┘
+```
+
+---
+
 ## When to Use Agent Teams
 
 **Use autonomous agent mode when:**

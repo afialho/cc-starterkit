@@ -212,6 +212,32 @@ Cada nova feature não quebra as anteriores — os testes garantem regressão ze
 
 ---
 
+## Escala: quando usar múltiplos times em paralelo
+
+Para projetos maiores, use `/agent-teams` em vez de `/feature-dev` isolado:
+
+```
+Pequeno (1 feature):
+  /feature-dev user-auth
+
+Médio (3+ features independentes):
+  /agent-teams
+  → Time Alpha: user-auth (3 agentes, ~35k tokens)
+  → Time Beta:  projects   (4 agentes, ~40k tokens)
+  → Time Gamma: tasks      (4 agentes, ~45k tokens)
+  Todos em paralelo, cada um em worktree própria.
+
+Grande (feature complexa demais para 1 time):
+  /agent-teams
+  → estima budget por workstream (max 85k/time)
+  → divide automaticamente se > 85k
+  → lança N times em paralelo
+```
+
+O orquestrador garante que cada workstream caiba em 100k tokens antes de despachar. Se não couber, divide.
+
+---
+
 ## O fluxo resumido para qualquer projeto
 
 ```
