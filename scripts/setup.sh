@@ -91,7 +91,7 @@ if [ -f "package.json" ] && grep -q '"@cucumber/cucumber"' package.json 2>/dev/n
   ok "Cucumber.js detected in package.json"
 else
   warn "Cucumber.js not in package.json — add when setting up your project"
-  info "Install: npm install --save-dev @cucumber/cucumber @cucumber/pretty-formatter"
+  info "Install: npm install --save-dev @cucumber/cucumber @cucumber/pretty-formatter typescript@5 ts-jest jest @types/jest @types/node"
 fi
 
 # ── 7. Claude Code hooks (Node.js modules) ───────────────────────────────────
