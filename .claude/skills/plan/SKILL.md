@@ -14,11 +14,13 @@ Generate a complete, structured development plan before writing any code.
 When this skill is invoked with `/plan [description]`, produce a comprehensive plan following these steps:
 
 ### 1. Understand the Feature
+> **Emit:** `▶ [1/8] Understanding Feature`
 - Restate the requirement in your own words to confirm understanding
 - Identify the user-facing behavior (what the user can do)
 - Identify the business rules (invariants, validations, constraints)
 
 ### 2. Hexagonal Architecture Mapping
+> **Emit:** `▶ [2/8] Architecture Mapping`
 Map the feature to the hexagonal architecture layers:
 
 ```
@@ -43,6 +45,7 @@ Shared (src/shared/):
 ```
 
 ### 3. BDD Scenarios (write these FIRST)
+> **Emit:** `▶ [3/8] Writing BDD Scenarios`
 Write Gherkin scenarios before any implementation. Create the feature file path: `tests/bdd/features/[feature-name].feature`
 
 ```gherkin
@@ -68,6 +71,7 @@ Feature: [Feature Name]
 ```
 
 ### 4. Test Plan
+> **Emit:** `▶ [4/8] Test Plan`
 ```
 Unit Tests (tests/unit/):
   - [list each test case with: "describe: context / it: expected behavior"]
@@ -83,6 +87,7 @@ Load Tests (tests/load/):
 ```
 
 ### 5. Implementation Order (TDD sequence)
+> **Emit:** `▶ [5/8] Implementation Order`
 ```
 Step 1: Write BDD feature file → tests/bdd/features/[feature].feature
 Step 2: Write failing unit tests (RED) for domain entities
@@ -101,6 +106,7 @@ Step 14: Code review pass
 ```
 
 ### 6. Agent Team Decomposition (for complex features)
+> **Emit:** `▶ [6/8] Agent Wave Decomposition`
 If the feature is complex enough to benefit from parallel agents, list the waves:
 
 ```
@@ -126,6 +132,7 @@ Wave 5 (Quality):
 ```
 
 ### 7. Git Strategy
+> **Emit:** `▶ [7/8] Git Strategy`
 ```
 Branch: feature/[feature-name]
 Worktree: rtk git worktree add ../[project]-[feature-name] -b feature/[feature-name]
@@ -142,6 +149,7 @@ Commit sequence:
 ```
 
 ### 8. Definition of Done
+> **Emit:** `▶ [8/8] Definition of Done`
 - [ ] All BDD scenarios pass (Cucumber)
 - [ ] All unit tests pass (100% of business logic)
 - [ ] All integration tests pass

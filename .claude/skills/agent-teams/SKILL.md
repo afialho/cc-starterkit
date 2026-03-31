@@ -54,6 +54,7 @@ Orquestrador agrega resultados ao final.
 ## Protocolo do Orquestrador
 
 ### Etapa 1 — Decomposição em Workstreams
+> **Emit:** `▶ [1/5] Decomposição em Workstreams`
 
 Antes de criar qualquer time, o orquestrador:
 
@@ -81,6 +82,7 @@ ESTIMATIVA DE TOKEN BUDGET:
 - Uma tarefa deve ser descrita em 1–2 frases. Se precisar de mais → muito grande.
 
 ### Etapa 2 — Criação dos Times
+> **Emit:** `▶ [2/5] Criação dos Times`
 
 Para cada workstream aprovado, crie um **Time Brief**:
 
@@ -98,6 +100,7 @@ Output esperado: [o que o time deve retornar]
 ```
 
 ### Etapa 3 — Lançamento Paralelo
+> **Emit:** `▶ [3/5] Lançamento dos Times`
 
 Lance todos os times **no mesmo turno** (múltiplos Agent tool calls simultâneos):
 
@@ -112,6 +115,7 @@ Cada time roda de forma independente em sua worktree.
 O orquestrador aguarda todos completarem antes de prosseguir.
 
 ### Etapa 4 — Waves Internas por Time
+> **Emit:** `▶ [4/5] Waves Internas` *(emit novamente ao iniciar cada wave: `▶ Wave N — <nome>`)*
 
 Dentro de cada time, o agente-líder organiza waves internas:
 
@@ -132,6 +136,7 @@ Wave Interna 4 (qualidade):
 Máximo 5 agentes por wave interna. Se um wave precisar de mais → cria wave adicional.
 
 ### Etapa 5 — Handoff e Agregação
+> **Emit:** `▶ [5/5] Agregando Resultados`
 
 Cada time retorna ao orquestrador:
 

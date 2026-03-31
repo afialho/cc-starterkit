@@ -204,6 +204,18 @@ Suggestions: [list or "None"]
 
 ---
 
+## Progress Reporting
+
+Whenever executing a multi-step skill workflow (`/feature-dev`, `/agent-teams`, `/plan`, `/tdd`, `/build`, etc.), emit a compact status line **before starting each phase or major step**:
+
+```
+▶ [N/Total] Phase Name
+```
+
+One line only. No preamble. Then proceed immediately with the work.
+
+---
+
 ## Available Skills
 
 | Skill              | Usage                                  | Purpose                                         |

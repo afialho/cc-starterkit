@@ -15,6 +15,8 @@ TDD (Red→Green→Refactor), Hexagonal Architecture, BDD (Cucumber), Load Tests
 ## Workflow (7 Phases)
 
 ### Phase 1 — Discovery
+> **Emit:** `▶ [1/7] Discovery`
+
 Understand the requirement fully before touching any code.
 
 - Restate the feature in your own words to confirm understanding
@@ -24,6 +26,8 @@ Understand the requirement fully before touching any code.
 - Define the Definition of Done (acceptance criteria)
 
 ### Phase 2 — Codebase Exploration
+> **Emit:** `▶ [2/7] Codebase Exploration`
+
 Use the **code-explorer** agent to map the existing codebase.
 
 ```
@@ -39,6 +43,8 @@ Task: Map existing architecture layers, identify patterns, trace execution paths
 Output: context handoff with architecture map and conventions summary.
 
 ### Phase 3 — Clarifying Questions
+> **Emit:** `▶ [3/7] Clarifying Questions`
+
 Based on exploration, surface any remaining unknowns:
 
 - Are there existing domain objects this feature extends or replaces?
@@ -50,6 +56,8 @@ Based on exploration, surface any remaining unknowns:
 Ask the user. Wait for answers before proceeding.
 
 ### Phase 4 — Architecture Design
+> **Emit:** `▶ [4/7] Architecture Design`
+
 Use the **code-architect** agent to propose implementation approaches.
 
 ```
@@ -74,6 +82,8 @@ Present the options to the user. Get approval on the chosen approach before impl
 - Run `/hexagonal` if guidance needed on any component
 
 ### Phase 5 — Implementation (TDD)
+> **Emit:** `▶ [5/7] Implementation (TDD)`
+
 Implement using strict Red→Green→Refactor. Git worktree isolation is mandatory.
 
 #### 5.1 — Create worktree
@@ -121,6 +131,8 @@ Wave 5: [code-reviewer]                                   — quality gate
 ```
 
 ### Phase 6 — Quality Review
+> **Emit:** `▶ [6/7] Quality Review`
+
 Use the **code-reviewer** agent to inspect all changes.
 
 ```
@@ -153,6 +165,8 @@ repeat until: all tests green AND review PASS
   - Required threshold: error rate < 1%
 
 ### Phase 7 — Summary
+> **Emit:** `▶ [7/7] Summary & Commit`
+
 After all quality gates pass, produce a completion summary and commit.
 
 **Commit (conventional commits format):**
