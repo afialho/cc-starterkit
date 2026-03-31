@@ -1,0 +1,255 @@
+# Rules.md — Project Rules & Constraints
+
+> Rules marked **[AUTO]** are enforced deterministically by hooks in `.claude/settings.json`.
+> All other rules are enforced through code review and the continuous improvement loop.
+
+---
+
+## Architecture Rules
+
+### RULE-ARCH-001 [AUTO]
+**Domain layer has zero external dependencies.**
+- Files in `src/domain/` may only import from `src/domain/` and `src/shared/`
+- No database, HTTP framework, ORM, or third-party library imports in domain
+- Domain entities and value objects are pure: no I/O, no side effects
+- *Enforcement: architecture-guard hook warns on Write/Edit to domain files*
+
+### RULE-ARCH-002 [AUTO]
+**Application layer depends only on domain and ports.**
+- Files in `src/application/` import from `src/domain/`, `src/ports/`, and `src/shared/`
+- No direct infrastructure imports (no DB clients, no HTTP clients) in application
+- Use cases depend on port interfaces, never on concrete adapters
+- *Enforcement: architecture-guard hook warns on Write/Edit to application files*
+
+### RULE-ARCH-003
+**Every infrastructure adapter implements a port interface.**
+- Each file in `src/infrastructure/` must have a corresponding interface in `src/ports/`
+- Example: `src/infrastructure/persistence/PostgresUserRepository.ts` implements `src/ports/outbound/UserRepository.ts`
+
+### RULE-ARCH-004
+**Dependency injection at the composition root.**
+- Infrastructure adapters are injected into use cases, never instantiated inside them
+- The composition root (entry point) is the only place that wires concrete implementations to ports
+
+### RULE-ARCH-005
+**No circular dependencies between layers.**
+- Domain → nothing
+- Application → Domain, Ports
+- Ports → Domain only
+- Infrastructure → Ports, Domain, Application (for use case wiring only)
+- Shared → nothing else
+
+---
+
+## Testing Rules
+
+### RULE-TEST-001 [AUTO]
+**Write tests before implementation (TDD).**
+- The RED phase (failing test) must precede the GREEN phase (implementation)
+- Commit history should show test commits before implementation commits
+- *Enforcement: tdd-guard hook adds context reminder when writing implementation files*
+
+### RULE-TEST-002
+**Every feature has BDD scenarios written before implementation starts.**
+- Gherkin feature files in `tests/bdd/features/` exist before code is written
+- Use `/plan` to generate BDD scenarios as part of planning
+
+### RULE-TEST-003
+**Every domain and application file has a corresponding unit test.**
+- `src/domain/X.ts` → `tests/unit/domain/X.test.ts`
+- `src/application/Y.ts` → `tests/unit/application/Y.test.ts`
+- Coverage target: 100% of business logic
+
+### RULE-TEST-004
+**Every infrastructure adapter has an integration test.**
+- `src/infrastructure/Z.ts` → `tests/integration/Z.test.ts`
+- Integration tests hit real or containerized dependencies (no mocks for external services)
+- Domain objects are real — only external service dependencies may be mocked in integration tests
+
+### RULE-TEST-005
+**Load tests for every new API endpoint.**
+- `tests/load/[endpoint-name].js` created for every new HTTP endpoint
+- Baseline: p95 < 200ms at expected steady load
+- Stress test: system stable at 2x expected peak
+- Run with: `k6 run tests/load/[endpoint-name].js`
+
+### RULE-TEST-006
+**Cypress tests for every user-facing flow.**
+- `tests/e2e/[feature-name].cy.ts` for every new user journey
+- Covers happy path + key error states
+
+### RULE-TEST-007
+**No tests that test implementation details.**
+- Tests verify behavior (what the code does), not implementation (how it does it)
+- Refactoring must not break tests unless behavior changes
+
+---
+
+## Code Quality Rules
+
+### RULE-CODE-001
+**Single Responsibility Principle.**
+- Each class: one reason to change
+- Each function: one responsibility
+- Functions < 20 lines (prefer < 10)
+- Classes < 200 lines (prefer < 100)
+
+### RULE-CODE-002
+**No magic numbers or strings.**
+- All constants defined with descriptive names
+- Domain constants in `src/domain/constants/`
+- Configuration values in `src/shared/config/`
+
+### RULE-CODE-003
+**Names reveal intent.**
+- No single-letter variables (except loop indices)
+- No abbreviations unless universally understood (id, url, db, api)
+- Booleans: `isActive`, `hasPermission`, `canEdit`, `shouldRetry`
+- Functions: verb + noun (`getUserById`, `processPayment`, `validateEmail`)
+- No `data`, `info`, `manager`, `handler`, `util`, `helper` as standalone names
+
+### RULE-CODE-004
+**No dead code.**
+- Remove unused imports, variables, functions, classes
+- No commented-out code blocks (use git history)
+- No TODO comments older than one sprint (convert to tracked issues)
+
+### RULE-CODE-005
+**Dependency Inversion.**
+- Depend on interfaces/abstract types, never on concrete implementations
+- Constructor injection preferred over property or method injection
+- No `new ConcreteClass()` inside business logic
+
+### RULE-CODE-006
+**No defensive programming inside domain.**
+- Domain assumes valid input (validate at application layer boundaries)
+- Application layer validates all inputs before calling domain
+- Infrastructure validates all external inputs
+
+---
+
+## Git Workflow Rules
+
+### RULE-GIT-001
+**Use worktrees for parallel feature development.**
+```bash
+rtk git worktree add ../[project]-[feature] -b feature/[feature-name]
+```
+- Each independent feature/task: separate worktree
+- Never develop two unrelated features in the same working tree
+
+### RULE-GIT-002
+**Atomic commits with descriptive messages.**
+- One logical change per commit
+- Format: `type(scope): short description`
+- Types: `feat`, `fix`, `test`, `refactor`, `docs`, `chore`, `perf`
+- Example: `test(auth): add unit tests for LoginUseCase`
+
+### RULE-GIT-003
+**No commits with failing tests.**
+- Run all tests before committing
+- Pre-commit: `rtk npm test` (or equivalent)
+- Never use `--no-verify`
+
+### RULE-GIT-004
+**Test commits precede implementation commits.**
+- Git history must show: BDD scenario → unit test → implementation → refactor
+- This is the TDD paper trail
+
+---
+
+## Efficiency Rules
+
+### RULE-EFF-001 [AUTO]
+**Use RTK CLI for all commands.**
+- Prefix all CLI commands with `rtk`: `rtk git status`, `rtk npm test`, `rtk ls -la`
+- RTK provides 60-90% token savings on dev operations
+- *Enforcement: rtk-rewrite hook adds context on every Bash tool call*
+
+### RULE-EFF-002
+**Prefer CLI over MCP.**
+- When a CLI tool exists, use it instead of MCP
+- CLI results are faster, deterministic, and token-efficient
+- Use MCP only when no CLI alternative exists
+
+### RULE-EFF-003
+**Minimal file reads.**
+- Use `Glob` and `Grep` before `Read` on large codebases
+- Read only files needed for the current task
+- Never read entire directories speculatively
+
+---
+
+## Agent Rules
+
+### RULE-AGENT-001
+**Maximum 5 agents in parallel.**
+- Never launch more than 5 concurrent Agent tool calls
+- If task needs more, create additional waves (sequential)
+
+### RULE-AGENT-002
+**Each agent executes exactly 1 granular activity.**
+- If a task takes more than 30 minutes, decompose it further
+- "Implement authentication" is NOT a valid single-agent task
+- "Write unit test for LoginUseCase.execute() — invalid password case" IS valid
+
+### RULE-AGENT-003
+**Maximum 100k tokens per agent context.**
+- Each agent monitors its token budget
+- Write partial handoff before approaching the limit
+- Signal orchestrator to spawn a continuation agent
+
+### RULE-AGENT-004
+**Context handoff required after every wave.**
+- Every agent produces a structured handoff (see Agents.md for format)
+- Orchestrator aggregates handoffs before starting next wave
+
+### RULE-AGENT-005
+**Reviewers are mandatory before marking a feature complete.**
+- Every feature goes through at least one code-reviewer agent
+- Review checks: architecture compliance, SOLID, test coverage, clean code
+
+---
+
+## Machine-Checkable Rules Configuration
+
+Hooks read `.claude/architecture.json` for layer validation.
+See `.claude/hooks/` for all automated enforcement scripts.
+
+```jsonc
+// .claude/architecture.json — architecture layer definitions
+{
+  "layers": {
+    "domain": {
+      "pattern": "src/domain/**",
+      "allowedImportPrefixes": ["src/domain/", "src/shared/"],
+      "description": "Pure business logic — zero external deps"
+    },
+    "application": {
+      "pattern": "src/application/**",
+      "allowedImportPrefixes": ["src/domain/", "src/ports/", "src/shared/"],
+      "description": "Use cases — depends on domain and port interfaces only"
+    },
+    "ports": {
+      "pattern": "src/ports/**",
+      "allowedImportPrefixes": ["src/domain/"],
+      "description": "Interface contracts (inbound + outbound)"
+    },
+    "infrastructure": {
+      "pattern": "src/infrastructure/**",
+      "allowedImportPrefixes": ["src/domain/", "src/application/", "src/ports/", "src/shared/"],
+      "description": "Adapters implementing ports"
+    },
+    "shared": {
+      "pattern": "src/shared/**",
+      "allowedImportPrefixes": [],
+      "description": "Cross-cutting concerns — no business logic"
+    }
+  },
+  "testMapping": {
+    "src/domain/**": "tests/unit/domain/**",
+    "src/application/**": "tests/unit/application/**",
+    "src/infrastructure/**": "tests/integration/**"
+  }
+}
+```

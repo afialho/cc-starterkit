@@ -1,0 +1,37 @@
+{
+  "layers": {
+    "domain": {
+      "pattern": "src/domain/",
+      "allowedImportPrefixes": ["src/domain/", "src/shared/"],
+      "description": "Pure business logic — zero external dependencies"
+    },
+    "application": {
+      "pattern": "src/application/",
+      "allowedImportPrefixes": ["src/domain/", "src/ports/", "src/shared/"],
+      "description": "Use cases — depends on domain and port interfaces only"
+    },
+    "ports": {
+      "pattern": "src/ports/",
+      "allowedImportPrefixes": ["src/domain/"],
+      "description": "Interface contracts (inbound + outbound)"
+    },
+    "infrastructure": {
+      "pattern": "src/infrastructure/",
+      "allowedImportPrefixes": ["src/domain/", "src/application/", "src/ports/", "src/shared/"],
+      "description": "Adapters implementing ports"
+    },
+    "shared": {
+      "pattern": "src/shared/",
+      "allowedImportPrefixes": [],
+      "description": "Cross-cutting concerns — no business logic allowed"
+    }
+  },
+  "testMapping": {
+    "src/domain/": "tests/unit/domain/",
+    "src/application/": "tests/unit/application/",
+    "src/infrastructure/": "tests/integration/"
+  },
+  "testExtensions": [".test.ts", ".test.js", ".spec.ts", ".spec.js", "_test.go", "_test.py", "Test.java"],
+  "implementationExtensions": [".ts", ".js", ".go", ".py", ".java", ".rb"],
+  "ignorePaths": ["node_modules/", ".git/", "dist/", "build/", "coverage/", "__pycache__/"]
+}
