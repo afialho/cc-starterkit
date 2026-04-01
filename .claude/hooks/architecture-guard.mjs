@@ -62,7 +62,12 @@ function loadArchConfig() {
 function detectLayer(filePath, config) {
   if (!config) return null;
   for (const [layerName, layerDef] of Object.entries(config.layers)) {
-    if (filePath.includes(layerDef.pattern)) {
+    // Support both 'pattern' (hexagonal) and 'path' (MVC, feature-based) keys
+    const rawPattern = layerDef.pattern || layerDef.path || '';
+    if (!rawPattern) continue;
+    // Strip glob wildcards (e.g. "src/domain/**" → "src/domain/") for substring matching
+    const prefix = rawPattern.replace(/\*+/g, '');
+    if (prefix && filePath.includes(prefix)) {
       return { name: layerName, ...layerDef };
     }
   }

@@ -36,6 +36,18 @@ function getProjectName() {
   return null;
 }
 
+function getArchPattern() {
+  const configPath = '.claude/architecture.json';
+  if (!existsSync(configPath)) return 'hexagonal';
+  try {
+    const config = JSON.parse(readFileSync(configPath, 'utf8'));
+    if (config.disabled) return 'flat';
+    return config.pattern || 'hexagonal';
+  } catch {
+    return 'hexagonal';
+  }
+}
+
 function detectStack() {
   const markers = [];
   if (existsSync('package.json')) {
@@ -68,6 +80,16 @@ async function main() {
   const projectName = getProjectName() || '[Project Name]';
   const stack = detectStack();
   const stackStr = stack.length > 0 ? stack.join(', ') : 'Not yet configured';
+  const archPattern = getArchPattern();
+
+  const archRuleByPattern = {
+    hexagonal: 'RULE-ARCH-001: Domain layer — zero external dependencies',
+    'mvc-rails': 'RULE-ARCH-001: Business logic in services/, controllers stay thin',
+    'mvc-express': 'RULE-ARCH-001: Business logic in services/, controllers stay thin',
+    'nextjs-app-router': "RULE-ARCH-001: Server logic in lib/, push 'use client' as deep as possible",
+    'feature-based': 'RULE-ARCH-001: Features are self-contained — no cross-feature imports',
+  };
+  const archRule = archRuleByPattern[archPattern] ?? 'RULE-ARCH-001: Respect architecture layers';
 
   // Inject checkpoint if one exists (written after /clear or /compact)
   const checkpointPath = '.claude/checkpoint.md';
@@ -94,7 +116,7 @@ async function main() {
     `## Key Rules (Always Active)`,
     `- RULE-EFF-001: Use \`rtk <cmd>\` for all CLI operations (60-90% token savings)`,
     `- RULE-EFF-002: Prefer CLI over MCP`,
-    `- RULE-ARCH-001: Domain layer — zero external dependencies`,
+    `- ${archRule}`,
     `- RULE-TEST-001: Write failing tests BEFORE implementation (TDD)`,
     `- RULE-TEST-002: BDD scenarios (Gherkin) written before code`,
     `- RULE-AGENT-001: Max 5 parallel agents`,
@@ -102,14 +124,16 @@ async function main() {
     `- RULE-GIT-001: Use worktrees for parallel feature work`,
     ``,
     `## Available Skills`,
-    `- /research        → Parallel research wave → RESEARCH.md (UX, libs, YouTube, docs)`,
-    `- /build           → Full pipeline: research → clarify → plan → implement`,
+    `- /build           → Full pipeline: research → plan → implement (entry point recomendado)`,
+    `- /research        → Parallel research wave → RESEARCH.md`,
     `- /plan            → Development plan with arch mapping, BDD, test plan`,
-    `- /feature-dev     → TDD + hexagonal feature implementation`,
+    `- /feature-dev     → TDD feature implementation (hexagonal, MVC, Next.js, feature-based)`,
+    `- /agent-teams     → Multi-team parallel orchestration for large features`,
+    `- /qa-loop         → Agentic QA: design, UX, backend, security, E2E + auto-fix loop`,
     `- /frontend-design → Production-grade UI with modern design`,
     `- /tdd             → Red-Green-Refactor workflow guidance`,
     `- /hexagonal       → Hexagonal architecture reference`,
-    `- /agent-teams     → Multi-team parallel orchestration`,
+    `- /adapt           → Auto-configure the kit for an existing project`,
     `- /resume          → Resume from checkpoint after context reset`,
     ``,
     `## Testing Stack`,
@@ -119,8 +143,11 @@ async function main() {
     `- Load/Stress: k6 (run: k6 run tests/load/<script>.js)`,
     ``,
     `## Start a Feature`,
+    `/build <ideia>  ← pipeline completo: research → plan → implement (recomendado)`,
+    ``,
+    `Para tasks simples sem necessidade de pesquisa:`,
     `1. /plan [describe what you want to build]`,
-    `2. /feature-dev [feature name]  ← orchestrates full TDD + agent workflow`,
+    `2. /feature-dev [feature name]`,
     ``,
     `See CLAUDE.md, Agents.md, Rules.md for full documentation.`,
   ];

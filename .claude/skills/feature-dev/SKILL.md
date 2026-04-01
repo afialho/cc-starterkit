@@ -1,6 +1,6 @@
 ---
 name: feature-dev
-description: Implement a feature end-to-end with TDD (Red→Green→Refactor), hexagonal architecture, BDD (Cucumber), load tests (k6), Cypress E2E, and git worktree isolation. 7-phase workflow.
+description: Implement a feature end-to-end with TDD (Red→Green→Refactor), multi-pattern architecture (hexagonal, MVC, Next.js App Router, feature-based), BDD (Cucumber), load tests (k6), Cypress E2E, and git worktree isolation. 7-phase workflow.
 disable-model-invocation: true
 argument-hint: <feature name>
 ---
@@ -190,36 +190,36 @@ Wave 5: [code-reviewer]                                   — quality gate
 ### Phase 6 — Quality Review
 > **Emit:** `▶ [6/7] Quality Review`
 
-Use the **code-reviewer** agent to inspect all changes.
+Run tests until all pass, then execute the QA Loop:
 
-```
-Agent: code-reviewer
-Task: Review all files modified in this feature. Check:
-      1. Architecture — hexagonal layers respected? No cross-layer violations?
-      2. TDD — every behavior has a test? Tests test behavior, not internals?
-      3. SOLID — Single Responsibility, Open/Closed, Liskov, Interface Segregation, DI?
-      4. Clean Code — readable names? No magic numbers? No dead code?
-      5. Security — injection risks? Auth gaps? Data exposure?
-      6. Performance — N+1 queries? Obvious bottlenecks?
-
-Output format:
-  REVIEW: [PASS | FAIL | PASS_WITH_SUGGESTIONS]
-  Blockers: [list or "None"]
-  Suggestions: [list or "None"]
-```
-
-**Continuous improvement loop:**
+**Step 1 — Tests:**
 ```
 run tests → if failures → fix → run tests again
-run review → if blockers → fix → run review again
-repeat until: all tests green AND review PASS
+repeat until: all unit + integration + BDD green
 ```
 
-**Additional quality gates (run after review passes):**
-- Cypress E2E (if UI involved): `rtk npx cypress run --spec tests/e2e/[feature].cy.ts`
-- k6 load test (if endpoint added): `rtk k6 run tests/load/[feature].js`
-  - Required threshold: p95 < 200ms at expected load
-  - Required threshold: error rate < 1%
+**Step 2 — Cypress E2E (if UI involved):**
+```bash
+rtk npx cypress run --spec tests/e2e/[feature].cy.ts
+```
+
+**Step 3 — k6 load test (if endpoint added):**
+```bash
+rtk k6 run tests/load/[feature].js
+# Required: p95 < 200ms, error rate < 1%
+```
+
+**Step 4 — QA Loop (dimensões baseadas no tipo de feature):**
+```
+/qa-loop (escopo: [feature name], dimensões: conforme tipo)
+  UI only      → qa-design + qa-ux + qa-a11y + qa-e2e
+  Backend only → qa-code + qa-backend + qa-security
+  Full-stack   → qa-code + qa-design + qa-ux + qa-a11y + qa-backend + qa-security + qa-e2e
+```
+
+O QA Loop roda agentes independentes, agrega o QA Report e faz fix loop automático (máx 3 iterações) antes de retornar PASS ou escalar para o usuário.
+
+**Gate**: `/qa-loop` PASS obrigatório antes de Phase 7.
 
 ### Phase 7 — Summary
 > **Emit:** `▶ [7/7] Summary & Commit`
@@ -244,8 +244,9 @@ Quality gates:
   ✅ All integration tests pass
   ✅ BDD scenarios pass (Cucumber)
   ✅ Code review: PASS
-  ✅ Cypress E2E pass       (if applicable)
-  ✅ k6 load within SLA     (if applicable)
+  ✅ Cypress E2E pass           (if applicable)
+  ✅ k6 load within SLA         (if applicable)
+  ✅ Browser verification: PASS (if UI involved)
 Branch: feature/[name]
 Worktree: clean up with `rtk git worktree remove ../[project]-[feature-name]`
 ```

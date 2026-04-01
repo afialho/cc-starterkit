@@ -49,6 +49,21 @@ Before each phase/step: `▶ [N/Total] Phase Name`
 
 ---
 
+## UI Quality Protocol
+
+**Foundation first** — Todo build com UI começa por design system + layout base. Verificar com agent-browser antes de qualquer feature.
+
+**Auth first** — Auth (register/login/logout) é sempre a primeira feature. Se auth falha no gate, o build para. Sem exceções.
+
+**Phase gates** — Após cada feature:
+1. `rtk npx cypress run --spec tests/e2e/[feature].cy.ts`
+2. `/qa-loop` com dimensões corretas para o tipo de feature
+3. Avança SOMENTE quando PASS — fix loop automático até lá
+
+**Verificação final** — `/qa-loop` com todas as dimensões ao final do build.
+
+---
+
 ## Skills
 
 | Skill | Purpose |
@@ -61,4 +76,6 @@ Before each phase/step: `▶ [N/Total] Phase Name`
 | `/tdd` | Red → Green → Refactor guidance |
 | `/hexagonal` | Hexagonal architecture reference |
 | `/agent-teams` | Multi-team parallel orchestration |
+| `/qa-loop` | QA agentic: design, UX, backend, security, E2E + fix loop automático |
 | `/resume` | Resume from checkpoint after context reset |
+| `/adapt` | Auto-configure the kit for an existing project (run once after adopt.sh) |

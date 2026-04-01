@@ -34,17 +34,25 @@ Estas regras **bloqueiam de verdade** (exit 2):
 | RULE-GIT-003 | Bash: `git commit --no-verify` | Impede bypass do hook de pre-commit |
 | RULE-ARCH-FILES | Write/Edit | Impede arquivos `.test.*` dentro de `src/` |
 
+Registrado em `settings.json` para `Bash` e `Write|Edit`.
+
+### ✅ Determinístico — `architecture-guard.mjs`
+
+Estes checks **bloqueiam de verdade** (exit 2) via `PreToolUse/Write|Edit`:
+
+| Regra | Trigger | O que bloqueia |
+|-------|---------|---------------|
+| RULE-ARCH-001 | Write/Edit em `src/domain/` | Imports de ORMs, HTTP clients, frameworks |
+| RULE-ARCH-002 | Write/Edit em `src/application/` | Imports de ORMs, HTTP clients, frameworks |
+
+Além do hard block, injeta `additionalContext` com as regras da camada como lembrete.
+
 ### ⚠️ Advisory — `rtk-rewrite.mjs`
 - Detecta comandos que deveriam usar RTK
 - Adiciona `additionalContext` pedindo para reescrever com `rtk`
 - **Não força nada** — o Claude precisa cooperar
 
 *Por quê não bloquear?* Bloquear todo `git status` sem RTK instalado quebraria o fluxo de novos membros do time. A abordagem correta é a global hook do próprio RTK (já configurada no seu ambiente).
-
-### ⚠️ Advisory — `architecture-guard.mjs`
-- Injeta as regras da camada no contexto quando um arquivo da camada é escrito
-- **Não verifica imports** — apenas lembra as regras
-- **Não bloqueia nada**
 
 ### ⚠️ Advisory — `tdd-guard.mjs`
 - Verifica se existe arquivo de teste correspondente **após** a escrita do arquivo de implementação
@@ -155,8 +163,8 @@ if (isBusinessLogicFile(filePath) && !testExists(filePath, config)) {
 |---------|-----------|-----------|
 | Não usar `--no-verify` | Hook bloqueia (exit 2) | ✅ 100% |
 | Não criar testes em `src/` | Hook bloqueia (exit 2) | ✅ 100% |
+| Imports proibidos em domain/application | Hook bloqueia (exit 2) | ✅ 100% |
 | Usar RTK no CLI | Context + RTK global hook | ⚠️ ~90% |
-| Respeitar camadas hexagonais | Context reminder | ⚠️ ~85% |
 | TDD (teste antes da impl) | Context + advisory | ⚠️ ~80% |
 | Seguir CLAUDE.md/Rules.md | Context + skills | ⚠️ ~85% |
 

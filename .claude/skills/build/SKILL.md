@@ -29,16 +29,21 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
     │         │   ├─ Agente Implementations    (sempre)
     │         │   └─ Agente YouTube            (se tem tutoriais relevantes)
     │         ├─ Agrega em RESEARCH.md
+    │         ├─ Agrega em RESEARCH.md
+    │         ├─ /qa-loop (qa-research) → GATE: research tem evidências reais?
     │         └─ ⏸ PAUSA: key insights + 3-5 perguntas de clarificação
     │
     ├─ [2/3] Fase 2 — Planning
     │         ├─ Extrai estruturadamente do RESEARCH.md → arquitetura hexagonal, BDD, test plan
     │         ├─ Gera PLAN.md
+    │         ├─ /qa-loop (qa-plan) → GATE: BDD completo? arquitetura mapeada?
     │         └─ ⏸ PAUSA: apresenta plano → aguarda aprovação
     │
     └─ [3/3] Fase 3 — Implementation
-              ├─ Feature simples → /feature-dev (7 fases, agentes por wave)
-              └─ Feature complexa (3+ componentes) → /agent-teams (times paralelos)
+              ├─ [3a] Foundation (design system + layout) → agent-browser → GATE
+              ├─ [3b] Auth (register/login/logout) → agent-browser → GATE obrigatório
+              ├─ Feature simples → /feature-dev + phase gate por feature
+              └─ Feature complexa (3+ componentes) → /agent-teams + phase gate por wave
 ```
 
 Checkpoints automáticos ao final de cada fase e sempre que o contexto estimado atingir ~60k tokens.
@@ -151,9 +156,17 @@ Consolida todos os achados em `RESEARCH.md` com estrutura:
 [links com descrição]
 ```
 
+### QA Gate pós-pesquisa
+
+Antes da pausa, executa:
+```
+/qa-loop (escopo: RESEARCH.md, dimensões: qa-research)
+```
+Se `qa-research` retornar BLOCKER → corrige gaps na pesquisa (spawna agente de research adicional) antes de apresentar ao usuário.
+
 ### Pausa obrigatória após pesquisa
 
-Após gerar `RESEARCH.md`, apresenta ao usuário:
+Após gerar `RESEARCH.md` e passar o gate, apresenta ao usuário:
 
 1. **Key Insights** (extraídos do RESEARCH.md, 5-10 linhas)
 2. **3-5 perguntas de clarificação** baseadas nos achados — focadas em gaps, trade-offs ou decisões que a pesquisa revelou e que precisam de input humano
@@ -252,6 +265,14 @@ Ler `.claude/architecture.json` antes de mapear. Usar o template correspondente 
 **Definition of Done:**
 - Checklist completo com todos os critérios
 
+### QA Gate pós-plano
+
+Antes de apresentar ao usuário, executa:
+```
+/qa-loop (escopo: PLAN.md, dimensões: qa-plan)
+```
+Se `qa-plan` retornar BLOCKER (ex: user story sem scenario, decision critical sem justificativa) → corrige o plano antes de apresentar.
+
 ### Apresentação ao usuário
 
 Apresenta o plano completo (pode ser inline ou referencia `PLAN.md` se gerado).
@@ -279,6 +300,61 @@ Escreve checkpoint com plano parcial e emite:
 ## Fase 3 — Implementation
 
 > **Emitir:** `▶ [3/3] Implementation`
+
+---
+
+### Foundation Protocol (OBRIGATÓRIO para qualquer app com UI)
+
+Antes de implementar qualquer feature de produto, executar em sequência estrita:
+
+#### [3a] Design System + Layout Base
+
+1. Instalar e configurar shadcn/ui + tema (cores, fontes, dark/light mode conforme tipo de app)
+2. Construir layout base: estrutura navegacional (header, sidebar ou nav, main content area)
+3. Executar QA:
+
+```
+⛔ GATE [3a]: /qa-loop (escopo: layout base, dimensões: qa-design)
+             PASS obrigatório — sem este gate, nenhuma feature inicia
+             Fix loop automático até PASS ou escalate para usuário
+```
+
+#### [3b] Auth — Register / Login / Logout
+
+1. Implementar fluxo completo: register, login, logout, redirect pós-login, proteção de rotas
+2. Criar `tests/e2e/auth.cy.ts` com happy path + caso de erro
+3. `rtk npx cypress run --spec tests/e2e/auth.cy.ts`
+4. Executar QA:
+
+```
+⛔ GATE [3b]: /qa-loop (escopo: auth, dimensões: qa-backend + qa-security + qa-e2e)
+             PASS obrigatório
+             Se auth falha → TODO o build para aqui
+             Não há exceções: auth com BLOCKER = build pausado até PASS
+```
+
+---
+
+### Phase Gate Protocol
+
+Após CADA feature implementada (não apenas ao final do build):
+
+```
+PHASE GATE — executar após cada feature:
+  □ rtk npx cypress run --spec tests/e2e/[feature].cy.ts
+  □ /qa-loop (escopo: [feature], dimensões: conforme tipo)
+      UI only      → qa-design + qa-ux + qa-e2e
+      Backend only → qa-backend + qa-security + qa-code
+      Full-stack   → qa-design + qa-ux + qa-backend + qa-security + qa-e2e
+  □ PASS obrigatório antes de iniciar a próxima feature
+  □ Fix loop automático (máx 3 iterações) antes de escalar para usuário
+```
+
+**Regra de dependência**: features que dependem de outra só iniciam se o gate da dependência passou.
+
+**Regra de prioridade de fix**: o QA Loop spawna fix agents automaticamente — o orquestrador do /build aguarda PASS antes de avançar, sem intervenção manual.
+
+---
 
 ### Decisão automática de protocolo
 
@@ -340,7 +416,13 @@ Após implementação completa:
    rtk k6 run tests/load/[f].js # se endpoint foi adicionado
    ```
 
-2. **Loop de correção** (se falhas): spawna agentes de fix targeted. Repete até tudo verde.
+2. **QA Final** (todas as dimensões aplicáveis ao build):
+   ```
+   /qa-loop (escopo: build completo, dimensões: todas)
+   ```
+   Fix loop automático até PASS. Se escalar → apresentar ao usuário antes do commit.
+
+3. **Loop de correção** (se falhas de testes unitários/BDD): spawna agentes de fix targeted. Repete até tudo verde.
 
 3. **Code review global** (agente code-reviewer):
    - Conformidade hexagonal
@@ -378,6 +460,12 @@ Testes:
   BDD:         [N] cenários passando
   E2E:         [N] passando     (se aplicável)
   Load:        p95 Xms @ Y rps  (se aplicável)
+
+Gates de qualidade:
+  Foundation:  ✅ Design system + layout verificado (agent-browser)
+  Auth:        ✅ Register/login/logout verificado (agent-browser + Cypress)
+  Per-feature: ✅ Phase gate passou em cada feature
+  Browser:     ✅ Verificação E2E final completa (agent-browser)
 
 Protocolo:    [feature-dev | agent-teams]
 Review:       PASS
