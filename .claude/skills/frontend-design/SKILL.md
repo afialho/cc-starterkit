@@ -11,7 +11,21 @@ Create distinctive, production-grade frontend interfaces. Combines creative aest
 
 ---
 
+## Phase 0 — Research
+
+> **Emit:** `▶ [0/9] Research`
+
+Se `RESEARCH.md` já existe no projeto → leia-o e use como base para as decisões de design.
+
+Se não existe → execute `/research [componente/feature]` primeiro.
+A pesquisa é OBRIGATÓRIA para qualquer componente não-trivial.
+Não pule esta fase. Um design sem referências reais resulta em AI slop.
+
+---
+
 ## Phase 1 — Understand Context + Design Thinking
+
+> **Emit:** `▶ [1/9] Understand Context + Design Thinking`
 
 Before designing anything, commit to a **bold aesthetic direction**:
 
@@ -31,6 +45,8 @@ Before designing anything, commit to a **bold aesthetic direction**:
 ---
 
 ## Phase 2 — Design Contract
+
+> **Emit:** `▶ [2/9] Design Contract`
 
 Before writing any code, define the design contract:
 
@@ -57,6 +73,8 @@ Responsive:
 
 ## Phase 3 — Component Hierarchy
 
+> **Emit:** `▶ [3/9] Component Hierarchy`
+
 Design from the outside in:
 
 ```
@@ -76,6 +94,8 @@ Page/Container (smart, fetches data)
 ---
 
 ## Phase 4 — Aesthetic Guidelines
+
+> **Emit:** `▶ [4/9] Aesthetic Guidelines`
 
 Every UI must be visually striking and memorable. Focus on:
 
@@ -113,11 +133,37 @@ Every UI must be visually striking and memorable. Focus on:
 - Default to dark mode for dashboards, developer tools, AI products
 - Light mode for content-first or editorial surfaces
 
+### Recommended Libraries (use estas, não reinvente a roda)
+
+**Component Primitives:**
+- shadcn/ui — componentes acessíveis, customizáveis, sem lock-in (npx shadcn@latest add)
+- Radix UI — primitives headless de alta qualidade (acessibilidade nativa)
+- Headless UI — alternativa Tailwind-first para primitives
+
+**Animation:**
+- Framer Motion / Motion — animações React de produção, layout animations, gestos
+- React Spring — animações physics-based para interações complexas
+- CSS @keyframes — para animações simples sem dependência extra
+
+**Visual / Advanced:**
+- Aceternity UI — componentes com efeitos visuais modernos (beam, spotlight, cards 3D)
+- Three.js / R3F — para experiências 3D quando o contexto justificar
+- Canvas API — visualizações customizadas (boards, diagramas, charts)
+
+**Data Visualization:**
+- Recharts — gráficos React declarativos
+- D3.js — visualizações customizadas complexas
+
+**Default para qualquer projeto React/Next.js:**
+→ shadcn/ui + Tailwind + Framer Motion
+
 **NEVER converge on generic AI aesthetics**: overused fonts, clichéd color schemes, predictable layouts, cookie-cutter design that lacks context-specific character. Every design should be unique.
 
 ---
 
 ## Phase 5 — TDD for Frontend
+
+> **Emit:** `▶ [5/9] TDD for Frontend`
 
 Write component tests before implementing:
 
@@ -140,6 +186,11 @@ Cypress E2E:
 
 ## Phase 6 — Implementation Order
 
+> **Emit:** `▶ [6/9] Implementation Order`
+
+0. (Se RESEARCH.md existe) Revisar referências encontradas e mapear:
+   quais bibliotecas usar, qual padrão de composição adotar,
+   qual efeito visual implementar inspirado nas referências
 1. Write failing component tests (RED)
 2. Build the component skeleton (GREEN — tests pass with minimal impl)
 3. Add all states (loading, error, empty, populated)
@@ -156,6 +207,8 @@ Cypress E2E:
 
 ## Phase 7 — Accessibility Checklist
 
+> **Emit:** `▶ [7/9] Accessibility Checklist`
+
 Before marking any UI component done:
 - [ ] All interactive elements reachable by keyboard (Tab)
 - [ ] Focus visible (not removed by CSS)
@@ -170,6 +223,8 @@ Before marking any UI component done:
 
 ## Phase 8 — Performance Checklist
 
+> **Emit:** `▶ [8/9] Performance Checklist`
+
 - [ ] Images optimized (WebP/AVIF, lazy loaded, correct sizes)
 - [ ] No layout shift (CLS < 0.1)
 - [ ] Large lists virtualized (> 100 items)
@@ -180,6 +235,8 @@ Before marking any UI component done:
 ---
 
 ## Phase 9 — Code Review Checklist
+
+> **Emit:** `▶ [9/9] Code Review Checklist`
 
 - [ ] Component does one thing (Single Responsibility)
 - [ ] Props interface clearly typed
@@ -210,3 +267,8 @@ Before marking any UI component done:
 - Predictable, cookie-cutter layouts
 - Scattered micro-interactions with no focal point
 - Solid color backgrounds with no atmosphere or depth
+- Não usar bibliotecas de componentes disponíveis (shadcn, Radix) e reimplementar do zero
+- Ignorar RESEARCH.md e implementar baseado em memória do modelo
+- Usar only Tailwind utility classes sem componentes de design system
+- Missing micro-interactions em elementos interativos chave
+- Transições bruscas sem animação (0ms) em elementos que aparecem/desaparecem

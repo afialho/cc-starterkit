@@ -1,263 +1,370 @@
 ---
 name: build
-description: Full lifecycle from raw idea to implemented feature. Refines the idea with the user (max 5 questions, one approval gate), then executes fully autonomously with parallel agent teams.
+description: Full lifecycle orchestrator. Runs research → clarify → plan → implement pipeline. Each phase uses parallel agents and has its own context budget with automatic checkpoints.
 disable-model-invocation: true
-argument-hint: <raw idea or feature description>
+argument-hint: <raw idea>
 ---
 
-# /build — Idea to Implementation
+# /build — Pipeline Completo: Ideia → Implementação
 
-One entry point. One approval gate. Full autonomous execution.
-
----
-
-## How it works
-
-```
-/build <raw idea>
-    │
-    ├─ Phase 1: Refinement (you + Claude, max 5 questions)
-    │
-    ├─ ⏸ SINGLE GATE: "Ready to build. Proceed?"
-    │
-    ├─ Phase 2: Plan (auto)
-    ├─ Phase 3: Decompose into workstreams (auto)
-    ├─ Phase 4: Launch parallel agent teams (auto)
-    └─ Phase 5: Review, commit, summary (auto)
-```
-
-**After you approve at the gate, Claude does not ask you anything else.**
-Agents make all architecture, implementation, and testing decisions autonomously.
+Orquestrador de três fases com research real, planejamento informado e implementação autônoma.
+Cada fase tem budget próprio de contexto e checkpoints automáticos.
 
 ---
 
-## Phase 1 — Refinement (interactive)
-
-Ask the user at most **5 targeted questions** to make the idea implementation-ready.
-Stop asking as soon as you have enough to proceed — never ask all 5 if fewer suffice.
-
-Focus on what is genuinely unknown:
-
-1. **Acceptance criteria** — What does "done" look like from the user's perspective?
-2. **Integration scope** — Does this touch existing code or start from scratch?
-3. **Interface** — Does it need a UI, an API endpoint, or is it pure backend logic?
-4. **Constraints** — Any hard performance, security, or compatibility requirements?
-5. **Out of scope** — Is there anything that looks related but should NOT be included?
-
-Do not ask about stack, architecture, or testing strategy — those are defined in CLAUDE.md, Rules.md, and Agents.md.
-
-Present a **Refinement Summary** when done:
+## Visão geral do pipeline
 
 ```
-REFINED SPEC
+/build <ideia bruta>
+    │
+    ├─ [0/3] Fase 0 — Refinamento da ideia
+    │         └─ ⏸ PAUSA: confirmação do entendimento
+    │
+    ├─ [1/3] Fase 1 — Research
+    │         ├─ Wave de agentes paralelos (UX, Libraries, YouTube, Implementations)
+    │         ├─ Agrega em RESEARCH.md
+    │         └─ ⏸ PAUSA: key insights + 3-5 perguntas de clarificação
+    │
+    ├─ [2/3] Fase 2 — Planning
+    │         ├─ Lê RESEARCH.md → arquitetura hexagonal, BDD, test plan
+    │         ├─ Gera PLAN.md
+    │         └─ ⏸ PAUSA: apresenta plano → aguarda aprovação
+    │
+    └─ [3/3] Fase 3 — Implementation
+              ├─ Feature simples → /feature-dev (7 fases, agentes por wave)
+              └─ Feature complexa (3+ componentes) → /agent-teams (times paralelos)
+```
+
+Checkpoints automáticos ao final de cada fase e sempre que o contexto estimado atingir ~60k tokens.
+
+---
+
+## Fase 0 — Refinamento da ideia
+
+> **Emitir:** `▶ [0/3] Refinando a ideia`
+
+Recebe a ideia bruta e:
+
+1. Reformula em linguagem técnica clara:
+   - O que será construído
+   - Input e output esperados
+   - Entidades envolvidas
+   - Tipo de feature: UI-heavy | Backend | Full-stack | Biblioteca
+
+2. Apresenta o entendimento ao usuário neste formato:
+
+```
+ENTENDIMENTO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Feature:       [name]
-Goal:          [one sentence — what the user achieves]
-Acceptance:    [bulleted list of done criteria]
-Touches:       [existing files/modules OR "greenfield"]
-Interface:     [UI / API endpoint / backend only]
-Constraints:   [list or "None beyond standard SLAs"]
-Out of scope:  [explicit exclusions]
+Feature:      [nome curto]
+Objetivo:     [uma frase — o que o usuário conquista]
+O que constrói: [2-4 bullets técnicos]
+Input/Output: [o que entra, o que sai]
+Entidades:    [entidades de domínio envolvidas]
+Tipo:         [UI-heavy | Backend | Full-stack | Biblioteca]
 ```
 
-Then ask: **"Ready to build? I'll plan, decompose, and implement this fully autonomously."**
+3. Pergunta: **"Esse entendimento está correto? Posso avançar para a pesquisa?"**
 
-Wait for a single "yes" / "go" / "proceed" confirmation. Do not start before receiving it.
+Aguarda confirmação antes de iniciar a Fase 1.
+Se o usuário corrigir algo, ajusta o entendimento e confirma novamente.
 
 ---
 
-## Phase 2 — Plan (autonomous, no user input)
+## Fase 1 — Research
 
-Generate the full development plan internally. Do not present it to the user — execute it.
+> **Emitir:** `▶ [1/3] Research — lançando agentes paralelos`
 
-Plan must cover:
+Executa o protocolo da skill `/research` para o tópico confirmado.
+
+### Wave de pesquisa (agentes paralelos)
+
+Lança até 4 agentes simultâneos, cada um com foco específico:
+
+**Agente UX/Design** — pesquisa padrões visuais e de interação
+- Busca: melhores práticas de UX para o tipo de feature
+- Busca: exemplos de UI de referência (bibliotecas, frameworks)
+- Busca: acessibilidade e responsividade relevantes
+
+**Agente Libraries** — pesquisa bibliotecas e dependências
+- Busca: bibliotecas mais adotadas para o problema
+- Busca: comparativos (maturidade, bundle size, API, licença)
+- Busca: versões compatíveis com o stack do projeto
+
+**Agente YouTube/Tutorials** — pesquisa implementações em vídeo
+- Busca: tutoriais e walkthroughs para o padrão/feature
+- Busca: pitfalls comuns e lições aprendidas
+- Busca: abordagens alternativas demonstradas
+
+**Agente Implementations** — pesquisa implementações reais
+- Busca: repositórios open source de referência
+- Busca: snippets e padrões de código recomendados
+- Busca: trade-offs de implementação documentados
+
+Cada agente usa WebSearch e WebFetch para pesquisa real — sem inventar dados.
+
+### Agregação
+
+Consolida todos os achados em `RESEARCH.md` com estrutura:
+
+```markdown
+# Research: [Feature Name]
+
+## Key Insights
+[5-10 bullets com os achados mais relevantes]
+
+## UX & Design Patterns
+[achados do agente UX]
+
+## Recommended Libraries
+[tabela: biblioteca | stars | pros | cons | recomendação]
+
+## Implementation Patterns
+[achados de implementações reais]
+
+## Pitfalls & Lessons Learned
+[problemas conhecidos e como evitá-los]
+
+## References
+[links com descrição]
+```
+
+### Pausa obrigatória após pesquisa
+
+Após gerar `RESEARCH.md`, apresenta ao usuário:
+
+1. **Key Insights** (extraídos do RESEARCH.md, 5-10 linhas)
+2. **3-5 perguntas de clarificação** baseadas nos achados — focadas em gaps, trade-offs ou decisões que a pesquisa revelou e que precisam de input humano
+
+Exemplo de perguntas relevantes:
+- "A pesquisa encontrou duas abordagens: X (mais simples) e Y (mais escalável). Qual prefere?"
+- "As bibliotecas A e B são as mais indicadas. A tem melhor DX, B tem melhor performance. Alguma preferência?"
+- "A feature toca autenticação — a pesquisa revelou que o padrão do projeto usa JWT. Confirma que devemos seguir esse padrão?"
+
+Aguarda resposta do usuário antes de iniciar a Fase 2.
+
+> **Checkpoint após Fase 1:**
+> Escreve `.claude/checkpoint.md`:
+> ```
+> fase: research_completa
+> research_md: gerado
+> respostas_usuario: [respostas registradas]
+> proximo: fase_2_planning
+> ```
+
+Se o contexto atingir ~60k tokens antes de concluir a Fase 1:
+Escreve checkpoint com o estado parcial e emite:
+`↺ Contexto ~60k. Recomendo /compact. Use /resume para continuar na Fase 1 (pesquisa parcial registrada).`
+
+---
+
+## Fase 2 — Planning
+
+> **Emitir:** `▶ [2/3] Planning`
+
+Executa o protocolo da skill `/plan` usando `RESEARCH.md` como input principal.
+
+### O que gerar
+
+Lê `RESEARCH.md` e as respostas de clarificação do usuário para informar cada decisão.
 
 **Hexagonal architecture mapping:**
-- Domain: entities, value objects, domain services, domain events
-- Application: use cases (one per user action)
-- Ports: inbound + outbound interfaces
-- Infrastructure: adapters (DB, HTTP, messaging, etc.)
+- Domain: entidades, value objects, domain services, domain events
+- Application: use cases (um por ação do usuário)
+- Ports: interfaces inbound e outbound
+- Infrastructure: adapters (DB, HTTP, mensageria, etc.)
+- Shared: configuração, logging, utilitários
 
 **BDD scenarios (Gherkin):**
 - Happy path
-- Error cases
+- Casos de erro
 - Edge cases
 
 **Test plan:**
-- Unit tests per domain entity and use case
-- Integration tests per adapter
-- E2E (Cypress) if UI involved
-- Load test (k6) if HTTP endpoint added
+- Unit tests por entidade de domínio e use case
+- Integration tests por adapter
+- E2E (Cypress) se houver UI
+- Load test (k6) se houver endpoint HTTP
 
 **Implementation sequence (TDD inside-out):**
 1. BDD feature file
-2. Domain entities (test first)
+2. Entidades de domínio (test first)
 3. Port interfaces
 4. Application use cases (test first)
 5. Infrastructure adapters (integration tests)
 6. Composition root wiring
 7. Cucumber step definitions
-8. Cypress E2E (if UI)
-9. k6 load test (if endpoint)
+8. Cypress E2E (se UI)
+9. k6 load test (se endpoint)
+
+**Agent wave decomposition** (se feature complexa):
+- Quais componentes podem ser implementados em paralelo
+- Quais têm dependência sequencial
+- Estimativa de waves necessárias
+
+**Git strategy:**
+- Nome da branch: `feature/[nome-kebab-case]`
+- Commits atômicos: sequência sugerida
+
+**Definition of Done:**
+- Checklist completo com todos os critérios
+
+### Apresentação ao usuário
+
+Apresenta o plano completo (pode ser inline ou referencia `PLAN.md` se gerado).
+
+Em seguida pergunta: **"Plano aprovado? Posso iniciar a implementação?"**
+
+Aceita: "sim", "vai", "aprovado", "implementa", "go" ou equivalente.
+Se o usuário pedir ajustes: incorpora e apresenta novamente.
+
+> **Checkpoint após Fase 2:**
+> Escreve `.claude/checkpoint.md`:
+> ```
+> fase: planning_completo
+> plan_md: gerado
+> aprovacao_usuario: confirmada
+> proximo: fase_3_implementation
+> ```
+
+Se o contexto atingir ~60k tokens antes de concluir a Fase 2:
+Escreve checkpoint com plano parcial e emite:
+`↺ Contexto ~60k. Recomendo /compact. Use /resume para continuar na Fase 2 (planejamento parcial registrado).`
 
 ---
 
-## Phase 3 — Decompose into Workstreams (autonomous)
+## Fase 3 — Implementation
 
-Break the plan into independent parallel workstreams following `/agent-teams` protocol.
+> **Emitir:** `▶ [3/3] Implementation`
 
-**Rules:**
-- Each workstream: max 25 files to read, max 15 files to create/modify, max 300 lines of code
-- Estimate token budget per workstream (must be < 85k tokens)
-- If a workstream exceeds 85k → split into two
-- Map dependencies: workstreams with data dependencies run in separate waves
+### Decisão automática de protocolo
 
-**Output a Time Brief for each workstream** (internal, not shown to user):
+| Critério | Protocolo |
+|----------|-----------|
+| Feature com 3+ componentes independentes | `/agent-teams` (times paralelos) |
+| Feature única ou sequencial | `/feature-dev` (7 fases, agentes por wave) |
+| Feature com UI significativa | Inclui `/frontend-design` dentro da implementação |
 
-```
-TIME BRIEF — [Name]
-─────────────────────────────────────────
-Workstream:   [what this team builds]
-Worktree:     rtk git worktree add ../[proj]-[name] -b feature/[name]
-Reads:        [exact file list — max 25]
-Writes:       [exact file list — max 15]
-Agents (3–5): [type + single-sentence task each]
-Budget:       [Xk tokens estimated]
-Wave:         [1 | 2 | 3 — which execution wave]
-```
+A decisão é tomada automaticamente com base no plano da Fase 2.
 
----
+### Contexto para implementação
 
-## Phase 4 — Execute (autonomous, parallel agent teams)
+Todos os agentes de implementação recebem como contexto:
+- `RESEARCH.md` — decisões de biblioteca e padrões visuais
+- Plano aprovado da Fase 2 — arquitetura, sequência, test plan
+- Respostas de clarificação do usuário da Fase 1
 
-### Agent Autonomy Rules (mandatory)
+### Se protocolo for /feature-dev
 
-Every agent launched under this skill operates under these constraints:
+Executa as 7 fases do `/feature-dev` com agentes por wave:
+- Fase 1: BDD scenarios
+- Fase 2: Domain (RED — testes failing)
+- Fase 3: Domain (GREEN — implementação)
+- Fase 4: Ports + Application (RED → GREEN)
+- Fase 5: Infrastructure adapters (integration tests)
+- Fase 6: Wiring + E2E
+- Fase 7: Review + Load test
 
-1. **Make decisions, don't ask.** If a choice must be made (naming, pattern, approach), pick the best option based on existing codebase conventions and SOLID principles. Document the decision in the handoff.
-2. **Resolve blockers independently.** If a dependency is missing, add it. If a pattern is unclear, follow the closest existing example in the codebase. Only escalate if the blocker makes the entire workstream impossible.
-3. **TDD is non-negotiable.** Write failing test before every implementation. No exceptions.
-4. **Architecture guard is active.** Never import across forbidden layer boundaries (see architecture.json).
-5. **Follow conventions.** Match naming, error handling, and DI patterns already present in the codebase.
+Checkpoint ao final de cada fase.
 
-### Execution Protocol
+### Se protocolo for /agent-teams
 
-**Create all worktrees before launching any team:**
-```bash
-rtk git worktree add ../[proj]-[workstream] -b feature/[workstream]
-```
+Executa o `/agent-teams` com times paralelos:
+- Decompõe em workstreams independentes (max 85k tokens por time)
+- Lança waves de times simultâneos (max 5 agentes por wave)
+- Cada time retorna TEAM REPORT com status, arquivos e decisões
+- Orquestrador agrega handoffs entre waves
 
-**Launch teams in parallel waves** (all teams in the same wave run simultaneously):
-```
-Wave 1: Agent(Team A) + Agent(Team B) + Agent(Team C)  ← parallel
-Wave 2: Agent(Team D) + Agent(Team E)                  ← only after Wave 1 completes
-```
+Checkpoint ao final de cada wave.
 
-Max 5 agents per wave across all teams combined (not per team).
+### Checkpoints durante implementação
 
-**Each team runs internal waves:**
-```
-Internal Wave 1 — Explorer:     map codebase context for this workstream
-Internal Wave 2 — Test-writer:  write failing tests (RED)
-Internal Wave 3 — Implementer:  make tests pass (GREEN → REFACTOR)
-Internal Wave 4 — Reviewer:     check architecture + SOLID compliance
-```
+A cada phase completa (se /feature-dev) ou a cada wave (se /agent-teams):
+Atualiza `.claude/checkpoint.md` com progresso exato.
 
-**Each team returns a handoff:**
-```
-TEAM REPORT — [Name]
-─────────────────────────────────────────
-Status:        [COMPLETE | PARTIAL | BLOCKED]
-Files created: [list]
-Files modified:[list]
-Tests:         [N unit, N integration, N BDD]
-Decisions:     [key choices made and rationale]
-Issues:        [blockers or "None"]
-```
+Se contexto atingir ~60k em qualquer ponto:
+`↺ Contexto ~60k. Recomendo /compact. Use /resume para continuar na [phase/wave exata].`
 
----
+### Conclusão da implementação
 
-## Phase 5 — Review, Commit, Summary (autonomous)
+Após implementação completa:
 
-### After all teams complete:
-
-1. **Merge worktrees** into a single feature branch:
-   ```bash
-   rtk git checkout -b feature/[feature-name]
-   rtk git merge feature/[workstream-a]
-   rtk git merge feature/[workstream-b]
-   # ... all workstreams
-   ```
-
-2. **Run full test suite:**
+1. **Roda suite de testes completa:**
    ```bash
    rtk npm test
    rtk npx cucumber-js
-   rtk npx cypress run          # if UI was built
-   rtk k6 run tests/load/[f].js # if endpoint was added
+   rtk npx cypress run          # se UI foi construída
+   rtk k6 run tests/load/[f].js # se endpoint foi adicionado
    ```
 
-3. **Fix failures** (if any): spawn targeted fix agents. Repeat until all green.
+2. **Loop de correção** (se falhas): spawna agentes de fix targeted. Repete até tudo verde.
 
-4. **Global code review** (code-reviewer agent):
-   - Hexagonal layer compliance
-   - SOLID principles
-   - Test coverage (every behavior tested)
-   - Security (no injection, no auth gaps)
-   - If review returns FAIL → fix loop until PASS
+3. **Code review global** (agente code-reviewer):
+   - Conformidade hexagonal
+   - Princípios SOLID
+   - Cobertura de testes
+   - Segurança
+   - Se FAIL → loop de fix até PASS
 
-5. **Commit:**
+4. **Commit:**
    ```bash
-   rtk git add [specific files — never git add .]
-   rtk git commit -m "feat([scope]): [description]
+   rtk git add [arquivos específicos — nunca git add .]
+   rtk git commit -m "feat([scope]): [descrição]
 
    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
    ```
 
-6. **Clean up worktrees:**
-   ```bash
-   rtk git worktree remove ../[proj]-[workstream-a]
-   # ... all worktrees
-   ```
-
-7. **Present final summary to user:**
+5. **Apresenta summary final ao usuário:**
 
 ```
-BUILD COMPLETE ✓
+BUILD COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Feature:        [feature name]
-Branch:         feature/[name]
+Feature:        [nome da feature]
+Branch:         feature/[nome]
 
-What was built:
-  [2–4 bullet points describing what was implemented]
+O que foi construído:
+  [2-4 bullets descrevendo o que foi implementado]
 
-Files:
-  Created:   [N]
-  Modified:  [N]
+Arquivos:
+  Criados:    [N]
+  Modificados:[N]
 
-Tests:
-  Unit:        [N] passing
-  Integration: [N] passing
-  BDD:         [N] scenarios passing
-  E2E:         [N] passing     (if applicable)
-  Load:        p95 Xms @ Y rps (if applicable)
+Testes:
+  Unit:        [N] passando
+  Integration: [N] passando
+  BDD:         [N] cenários passando
+  E2E:         [N] passando     (se aplicável)
+  Load:        p95 Xms @ Y rps  (se aplicável)
 
-Teams used:   [N] parallel teams across [N] waves
+Protocolo:    [feature-dev | agent-teams]
 Review:       PASS
 
-Next: merge feature/[name] into main when ready.
+Próximo: merge feature/[nome] em main quando pronto.
 ```
 
 ---
 
-## Failure handling
+## Regras gerais
 
-| Situation | Agent behavior |
-|-----------|---------------|
-| Test won't pass after 3 attempts | Document in handoff, mark workstream PARTIAL, continue others |
-| Architecture violation detected | Fix the violation, document the decision |
-| Missing dependency (npm package) | Install it, document in handoff |
-| Ambiguous requirement | Choose the simpler interpretation, document the assumption |
-| Workstream BLOCKED (truly impossible) | Report in handoff, orchestrator decides whether to skip or adapt |
+1. **Nunca pule a pesquisa** — features de UI sem `RESEARCH.md` resultam em soluções genéricas sem embasamento real.
+2. **Pausas obrigatórias** após Fase 1 (clarificação) e Fase 2 (aprovação do plano). Fora dessas pausas, execução é totalmente autônoma.
+3. **Checkpoints** ao final de cada fase e sempre que estimar ~60k tokens consumidos.
+4. **Progress markers** em todos os pontos (`▶ [N/3] Phase Name`).
+5. **Autonomia máxima dentro de cada fase** — decisões de arquitetura, naming, padrões e dependências são feitas pelos agentes sem perguntar ao usuário.
+6. **Decisões documentadas** — toda escolha não-óbvia é registrada no handoff do agente que a tomou.
+7. **TDD não é negociável** — teste failing antes de qualquer implementação, sem exceções.
 
-Agents never ask the user for help during execution. They decide, document, and continue.
+---
+
+## Tratamento de falhas
+
+| Situação | Comportamento |
+|----------|---------------|
+| Pesquisa retorna poucos resultados | Documenta o gap no RESEARCH.md, avança com o que foi encontrado |
+| Teste não passa após 3 tentativas | Documenta no handoff, marca workstream PARTIAL, continua os demais |
+| Violação de arquitetura detectada | Corrige a violação, documenta a decisão |
+| Dependência faltando | Instala, documenta no handoff |
+| Requisito ambíguo | Escolhe a interpretação mais simples, documenta a premissa |
+| Workstream BLOQUEADO (impossível) | Reporta no handoff, orquestrador decide se pula ou adapta |
+
+Agentes nunca pedem ajuda ao usuário durante a execução. Decidem, documentam e continuam.
