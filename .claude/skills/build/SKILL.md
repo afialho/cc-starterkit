@@ -21,12 +21,18 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
     │         └─ ⏸ PAUSA: confirmação do entendimento
     │
     ├─ [1/3] Fase 1 — Research
-    │         ├─ Wave de agentes paralelos (UX, Libraries, YouTube, Implementations)
+    │         ├─ Wave de agentes paralelos:
+    │         │   ├─ Agente Business/Market    (sempre que feature tem usuários)
+    │         │   ├─ Agente API/Docs           (se integra com terceiros)
+    │         │   ├─ Agente Architecture       (se tem backend/infra)
+    │         │   ├─ Agente Domain/Rules       (se domínio especializado)
+    │         │   ├─ Agente Implementations    (sempre)
+    │         │   └─ Agente YouTube            (se tem tutoriais relevantes)
     │         ├─ Agrega em RESEARCH.md
     │         └─ ⏸ PAUSA: key insights + 3-5 perguntas de clarificação
     │
     ├─ [2/3] Fase 2 — Planning
-    │         ├─ Lê RESEARCH.md → arquitetura hexagonal, BDD, test plan
+    │         ├─ Extrai estruturadamente do RESEARCH.md → arquitetura hexagonal, BDD, test plan
     │         ├─ Gera PLAN.md
     │         └─ ⏸ PAUSA: apresenta plano → aguarda aprovação
     │
@@ -79,24 +85,34 @@ Executa o protocolo da skill `/research` para o tópico confirmado.
 
 ### Wave de pesquisa (agentes paralelos)
 
-Lança até 4 agentes simultâneos, cada um com foco específico:
+Lança até 4 agentes simultâneos com base no tipo de feature. A seleção é feita pelo orquestrador conforme o contexto da ideia confirmada na Fase 0.
 
-**Agente UX/Design** — pesquisa padrões visuais e de interação
-- Busca: melhores práticas de UX para o tipo de feature
-- Busca: exemplos de UI de referência (bibliotecas, frameworks)
-- Busca: acessibilidade e responsividade relevantes
+**Agente Business/Market** — pesquisa mercado e concorrência (usar sempre que a feature tem usuários finais)
+- Busca: concorrentes e como resolvem o mesmo problema (Product Hunt, G2, Capterra)
+- Busca: reviews de usuários — o que elogiam, o que reclamam
+- Busca: blogs do setor e posts de referência sobre o problema
 
-**Agente Libraries** — pesquisa bibliotecas e dependências
-- Busca: bibliotecas mais adotadas para o problema
-- Busca: comparativos (maturidade, bundle size, API, licença)
-- Busca: versões compatíveis com o stack do projeto
+**Agente API/Docs** — pesquisa integrações com terceiros (usar se a feature integra com APIs externas)
+- Busca: documentação oficial de cada serviço externo mencionado
+- Busca: endpoints relevantes, rate limits, autenticação e SDKs disponíveis
+- Busca: changelogs e versões suportadas
+
+**Agente Architecture/Backend** — pesquisa padrões de design e infraestrutura (usar se tem backend ou infra)
+- Busca: padrões de design aplicáveis (Martin Fowler, AWS/GCP blogs, RFC relevantes)
+- Busca: decisões de schema, modelagem de dados e estratégias de persistência
+- Busca: trade-offs de arquitetura documentados por praticantes
+
+**Agente Domain/Rules** — pesquisa domínio especializado (usar se o domínio tem terminologia ou regras específicas)
+- Busca: regras do setor, regulamentações e compliance relevantes
+- Busca: terminologia canônica do domínio (para naming de entidades)
+- Busca: RFCs, standards ou especificações formais aplicáveis
 
 **Agente YouTube/Tutorials** — pesquisa implementações em vídeo
 - Busca: tutoriais e walkthroughs para o padrão/feature
 - Busca: pitfalls comuns e lições aprendidas
 - Busca: abordagens alternativas demonstradas
 
-**Agente Implementations** — pesquisa implementações reais
+**Agente Implementations** — pesquisa implementações reais (sempre incluído)
 - Busca: repositórios open source de referência
 - Busca: snippets e padrões de código recomendados
 - Busca: trade-offs de implementação documentados
@@ -113,11 +129,17 @@ Consolida todos os achados em `RESEARCH.md` com estrutura:
 ## Key Insights
 [5-10 bullets com os achados mais relevantes]
 
-## UX & Design Patterns
-[achados do agente UX]
+## Business & Market Analysis
+[achados do agente Business/Market]
 
-## Recommended Libraries
-[tabela: biblioteca | stars | pros | cons | recomendação]
+## API & Integration Docs
+[achados do agente API/Docs: endpoints, rate limits, SDKs]
+
+## Architecture & Backend Patterns
+[achados do agente Architecture/Backend]
+
+## Domain Rules & Terminology
+[achados do agente Domain/Rules: regras, terminologia canônica]
 
 ## Implementation Patterns
 [achados de implementações reais]
@@ -138,7 +160,7 @@ Após gerar `RESEARCH.md`, apresenta ao usuário:
 
 Exemplo de perguntas relevantes:
 - "A pesquisa encontrou duas abordagens: X (mais simples) e Y (mais escalável). Qual prefere?"
-- "As bibliotecas A e B são as mais indicadas. A tem melhor DX, B tem melhor performance. Alguma preferência?"
+- "As APIs A e B cobrem o mesmo caso de uso. A tem melhor DX, B tem melhor rate limit. Alguma preferência?"
 - "A feature toca autenticação — a pesquisa revelou que o padrão do projeto usa JWT. Confirma que devemos seguir esse padrão?"
 
 Aguarda resposta do usuário antes de iniciar a Fase 2.
@@ -162,7 +184,27 @@ Escreve checkpoint com o estado parcial e emite:
 
 > **Emitir:** `▶ [2/3] Planning`
 
-Executa o protocolo da skill `/plan` usando `RESEARCH.md` como input principal.
+Antes de gerar qualquer planejamento, extrai estruturadamente do RESEARCH.md:
+
+**APIs identificadas:**
+→ Cada API externa encontrada = outbound port + infrastructure adapter nomeado especificamente
+→ Cada endpoint relevante = uma task granular na wave decomposition (não "integrar API", mas "implementar POST /charges no StripeAdapter")
+
+**Regras de negócio encontradas:**
+→ Cada regra = um BDD Scenario concreto com Given/When/Then específicos
+→ Edge cases do domínio = Scenarios adicionais
+→ Usar terminologia exata do domínio encontrada na pesquisa para nomear entidades
+
+**Concorrentes e referências de arquitetura:**
+→ Padrões que se repetiram em múltiplas referências = padrão preferido para este projeto
+→ Trade-offs documentados nos achados = decisões de design informadas e documentadas
+
+**Achados de implementação:**
+→ Abordagens técnicas encontradas no RESEARCH.md informam a sequência de implementação
+→ Pitfalls identificados = items de atenção no plano
+
+Este mapeamento explícito garante que o planejamento seja embasado nos achados reais da pesquisa,
+não em decisões genéricas do modelo.
 
 ### O que gerar
 

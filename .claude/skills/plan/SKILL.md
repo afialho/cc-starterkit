@@ -13,6 +13,21 @@ Generate a complete, structured development plan before writing any code.
 
 When this skill is invoked with `/plan [description]`, produce a comprehensive plan following these steps:
 
+### 0. Ler contexto de pesquisa
+> **Emit:** `▶ [0/8] Lendo contexto de pesquisa`
+
+Se `RESEARCH.md` existir no projeto, leia-o integralmente antes de qualquer planejamento.
+Extraia e registre internamente:
+
+- **APIs descobertas:** endpoints, autenticação, rate limits → cada endpoint vira uma task específica
+- **Regras de negócio identificadas:** cada regra vira um BDD scenario concreto
+- **Concorrentes analisados:** padrões e decisões de arquitetura informadas pelas referências
+- **Padrões de implementação:** abordagens encontradas nos achados de referência
+- **Domain terminology:** vocabulário do domínio para nomear entidades e use cases corretamente
+
+Se RESEARCH.md não existir, prossiga com o planejamento baseado na descrição fornecida
+e adicione uma nota no plano: "⚠ Sem RESEARCH.md — considere executar /research antes para embasar decisões."
+
 ### 1. Understand the Feature
 > **Emit:** `▶ [1/8] Understanding Feature`
 - Restate the requirement in your own words to confirm understanding
@@ -44,6 +59,14 @@ Shared (src/shared/):
   - Config/utils needed
 ```
 
+Se RESEARCH.md tiver APIs identificadas:
+  → Cada API externa = um outbound port + infrastructure adapter específico
+  → Nomear o adapter com base na API real (ex: StripePaymentAdapter, not GenericHttpAdapter)
+
+Se RESEARCH.md tiver domain rules:
+  → Cada regra de negócio = uma entidade de domínio ou domain service específico
+  → Usar a terminologia exata do domínio encontrada na pesquisa
+
 ### 3. BDD Scenarios (write these FIRST)
 > **Emit:** `▶ [3/8] Writing BDD Scenarios`
 Write Gherkin scenarios before any implementation. Create the feature file path: `tests/bdd/features/[feature-name].feature`
@@ -69,6 +92,11 @@ Feature: [Feature Name]
     When ...
     Then ...
 ```
+
+Se RESEARCH.md tiver regras de domínio ou edge cases:
+  → Criar um Scenario para cada regra identificada
+  → Criar Scenarios para os edge cases encontrados na pesquisa
+  → Usar o vocabulário exato do domínio nos Given/When/Then
 
 ### 4. Test Plan
 > **Emit:** `▶ [4/8] Test Plan`
@@ -105,31 +133,40 @@ Step 13: Run full test suite → all green
 Step 14: Code review pass
 ```
 
-### 6. Agent Team Decomposition (for complex features)
+### 6. Agent Wave Decomposition
 > **Emit:** `▶ [6/8] Agent Wave Decomposition`
-If the feature is complex enough to benefit from parallel agents, list the waves:
 
+Para cada componente independente identificado no planejamento, criar uma task granular seguindo o protocolo de Agents.md:
+
+**Critérios de granularidade (obrigatórios):**
+- Cada task deve ser descrita em 1-2 frases. Se precisar de mais → dividir.
+- Max 25 arquivos para ler por agente
+- Max 15 arquivos para criar/modificar por agente
+- Max 300 linhas de código por agente
+- Estimativa de tokens: (arquivos × 1.5k) + (linhas × 20) + 25k overhead < 85k
+
+**Formato de cada task:**
 ```
-Wave 1 (Exploration):
-  - explorer-1: [what to explore]
-
-Wave 2 (Planning):
-  - planner: [architecture decisions]
-  - bdd-writer: [BDD scenarios]
-
-Wave 3 (Domain):
-  - test-writer: [failing domain tests]
-  - implementer: [domain implementation]
-
-Wave 4 (Application + Infrastructure):
-  - implementer-A: [use cases]
-  - implementer-B: [adapters]
-  - test-writer-2: [integration tests]
-
-Wave 5 (Quality):
-  - reviewer: [full code review]
-  - e2e-writer: [Cypress tests]
+TASK [N]:
+  tipo:     [explorer | test-writer | implementer | reviewer | bdd-writer | e2e-writer]
+  tarefa:   [uma frase — exatamente o que fazer]
+  lê:       [lista exata de arquivos — max 25]
+  cria/modifica: [lista exata — max 15]
+  depende de: [TASK X, ou "nenhuma" se pode rodar em wave 1]
+  tokens estimados: [Xk]
 ```
+
+**Organizar em waves:**
+- Wave 1: tasks sem dependências (exploration, BDD scenarios)
+- Wave 2: tasks que dependem de Wave 1 (domain tests + domain impl)
+- Wave 3: tasks que dependem de Wave 2 (application + infrastructure)
+- Wave N+1: apenas quando Wave N estiver completa
+
+Máximo 5 tasks por wave.
+Se feature precisar de mais de 5 tasks em paralelo → criar sub-waves.
+
+Se RESEARCH.md tiver APIs identificadas:
+  → Criar tasks específicas de integração por endpoint (não "implementar integração", mas "implementar POST /payments endpoint no StripeAdapter")
 
 ### 7. Git Strategy
 > **Emit:** `▶ [7/8] Git Strategy`
@@ -158,6 +195,17 @@ Commit sequence:
 - [ ] k6 load test within SLA (if endpoint)
 - [ ] No linting errors
 - [ ] Architecture layers respected (no cross-layer violations)
+
+---
+
+## Protocolo de agentes
+
+Para execução com agentes paralelos, cada task acima segue o protocolo completo de `Agents.md`:
+- Cada agente recebe: task (1 frase), contexto da wave anterior, constraints relevantes, lista exata de arquivos
+- Cada agente produz: handoff com arquivos criados/modificados, decisões, issues, next_needs
+- O orquestrador agrega os handoffs antes de iniciar a wave seguinte
+
+Leia `Agents.md` para o protocolo completo de orchestração, token budget e formato de handoff.
 
 ---
 
