@@ -2,25 +2,90 @@
 
 Stack-agnostic AI development starter kit for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Pre-configured skills, hooks, and rules that orchestrate the full software lifecycle -- from idea to deploy -- using autonomous agent teams, TDD, and enforced architecture. Drop it into any project, run `/build`, and let Claude Code handle research, planning, implementation, and QA.
+Build **any software from zero to production** -- a to-do list, a SaaS platform, a Pipefy clone, a Netflix-scale app. Or start simple with an MVP and evolve. It also works on **existing codebases**: add new features, refactor messy code, redesign the UI, modernize the architecture, or fix bugs -- all with the same toolkit.
+
+27 skills, 8 deterministic hooks, 6 architecture patterns, 3 project scales. One command to start.
+
+---
+
+## The Magic: `/build`
+
+This is the heart of the kit. **You type one command and the entire software lifecycle runs autonomously.**
+
+```
+/build a project management app like Pipefy with boards, cards, automations and team collaboration
+```
+
+That single command triggers a full pipeline:
+
+```
+/build <your idea>
+  |
+  |  Phase 0 -- Understand
+  |  Detects what you need and auto-routes:
+  |    No project yet?     --> scaffolds from scratch
+  |    Idea is vague?      --> interviews you to clarify, then resumes
+  |    Want to transform?  --> routes to /redesign, /refactor, or /modernize
+  |    Clear feature?      --> continues below
+  |
+  |  Phase 1 -- Research                           [parallel agents]
+  |  Launches up to 6 specialized agents that search the web:
+  |  market analysis, API docs, architecture patterns, domain rules,
+  |  real implementations, video tutorials. Produces RESEARCH.md.
+  |  Pauses to show key insights and ask clarifying questions.
+  |
+  |  Phase 2 -- Planning                           [informed by research]
+  |  Generates BDD scenarios (Gherkin), architecture mapping for your
+  |  detected pattern, test plan, agent wave decomposition.
+  |  Produces PLAN.md. Pauses for your approval.
+  |
+  |  Phase 3 -- Implementation                     [TDD + agent waves]
+  |  Foundation first (design system + layout), auth gate, then features.
+  |  Each feature: failing test --> implementation --> review --> QA gate.
+  |  Parallel agents, structured handoffs, automatic fix loops.
+  |  Commits, reports, done.
+```
+
+It works for a weekend hackathon (`scale=MVP`) or a production launch (`scale=Product`). You choose the level of rigor; the kit enforces it.
+
+---
 
 ## Quick Start
 
+**One-liner** (no clone needed):
+
 ```bash
-# Clone
+bash <(curl -s "https://raw.githubusercontent.com/afialho/cc-starterkit/main/scripts/new-project.sh?t=$(date +%s)") my-app
+```
+
+This clones the kit, initializes a fresh git history, runs setup, and leaves you ready to go.
+
+**Then:**
+
+```bash
+cd my-app
+claude
+/build <your idea>
+```
+
+**Manual setup** (if you prefer):
+
+```bash
 git clone https://github.com/afialho/cc-starterkit.git my-project
 cd my-project
-
-# Setup
 chmod +x scripts/setup.sh && ./scripts/setup.sh
-
-# Configure
-# Edit CLAUDE.md: replace [Project Name] with your project name
-# Edit .claude/architecture.json if not using hexagonal (default)
-
-# Start
+# Edit CLAUDE.md: replace [Project Name]
 claude
-/build my amazing app idea
+```
+
+**For existing codebases:**
+
+```bash
+# Copy the kit into your project
+cp -r cc-starterkit/.claude cc-starterkit/CLAUDE.md cc-starterkit/Rules.md cc-starterkit/docs your-project/
+cd your-project && claude
+/adapt              # auto-detects your stack and configures everything
+/build new feature  # or /refactor, /redesign, /modernize
 ```
 
 ## What's Included
@@ -34,30 +99,6 @@ claude
 | `.claude/architecture.json` | Active architecture pattern and layer rules |
 | `docs/` | Architecture, testing, usage, and hook documentation |
 | `scripts/setup.sh` | One-command dependency installer |
-
-## The Pipeline
-
-`/build` is the entry point. It detects project context and routes automatically:
-
-```
-/build <idea>
-  |
-  +-- Phase 0: Context detection
-  |     Empty project    --> /scaffold (initialize from scratch)
-  |     Vague idea       --> /ideate (collaborative interview first)
-  |     UI transform     --> /redesign
-  |     Code cleanup     --> /refactor
-  |     Arch migration   --> /modernize
-  |
-  +-- Phase 1: Research
-  |     Parallel agents --> RESEARCH.md (market, libs, architecture, docs)
-  |
-  +-- Phase 2: Planning
-  |     BDD scenarios + architecture mapping --> PLAN.md
-  |
-  +-- Phase 3: Implementation
-        TDD + agent waves --> tested, deployed code
-```
 
 ## Architecture Patterns
 
@@ -216,19 +257,6 @@ See [docs/TESTING.md](docs/TESTING.md) for the full testing strategy.
 | k6 | Latest | No | Required only for load tests (Scale) |
 
 `scripts/setup.sh` checks for and installs all dependencies automatically.
-
-## Using with Existing Projects
-
-```bash
-# Copy the kit into your project root
-cp -r cc-starterkit/.claude cc-starterkit/CLAUDE.md cc-starterkit/Rules.md cc-starterkit/docs your-project/
-
-# Start Claude Code and run adapt
-claude
-/adapt
-```
-
-`/adapt` auto-detects your stack, architecture pattern, and test framework, then updates `architecture.json`, `CLAUDE.md`, and hooks to match. It configures the kit -- it does not refactor your code (use `/refactor` for that).
 
 ## Documentation
 

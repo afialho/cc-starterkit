@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# new-project.sh — Create a new project from ai-dev-starter-kit
+# new-project.sh — Create a new project from cc-starterkit
 #
 # Usage (one-liner, no clone needed):
-#   bash <(curl -s https://raw.githubusercontent.com/afialho/ai-dev-starter-kit/main/scripts/new-project.sh) <project-name> [destination]
+#   bash <(curl -s "https://raw.githubusercontent.com/afialho/cc-starterkit/main/scripts/new-project.sh?t=$(date +%s)") <project-name> [destination]
 #
 # Examples:
 #   bash new-project.sh my-app
