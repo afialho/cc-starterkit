@@ -53,7 +53,7 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
               └─ Feature complexa (3+ componentes) → /agent-teams + phase gate por wave
 ```
 
-Checkpoints automáticos ao final de cada fase e sempre que o contexto estimado atingir ~60k tokens.
+Checkpoints automáticos ao final de cada fase e sempre que o contexto estimado atingir ~60k tokens (write checkpoint) / ~80k (compact recommended).
 
 ---
 
@@ -302,7 +302,7 @@ Aguarda resposta do usuário antes de iniciar a Fase 2.
 > proximo: fase_2_planning
 > ```
 
-Se o contexto atingir ~60k tokens antes de concluir a Fase 1:
+Se o contexto atingir ~60k tokens (write checkpoint) / ~80k (compact recommended) antes de concluir a Fase 1:
 Escreve checkpoint com o estado parcial e emite:
 `↺ Contexto ~60k. Recomendo /compact. Use /resume para continuar na Fase 1 (pesquisa parcial registrada).`
 
@@ -410,7 +410,7 @@ Se o usuário pedir ajustes: incorpora e apresenta novamente.
 > proximo: fase_3_implementation
 > ```
 
-Se o contexto atingir ~60k tokens antes de concluir a Fase 2:
+Se o contexto atingir ~60k tokens (write checkpoint) / ~80k (compact recommended) antes de concluir a Fase 2:
 Escreve checkpoint com plano parcial e emite:
 `↺ Contexto ~60k. Recomendo /compact. Use /resume para continuar na Fase 2 (planejamento parcial registrado).`
 
@@ -480,9 +480,27 @@ Antes de implementar qualquer feature de produto, executar em sequência estrita
 ```
 ⛔ GATE [3b]: /qa-loop (escopo: auth, dimensões: qa-backend + qa-security + qa-e2e)
              PASS obrigatório
-             Se auth falha → TODO o build para aqui
-             Não há exceções: auth com BLOCKER = build pausado até PASS
+             Se auth retorna BLOCKER → parar completamente. Apresentar ao usuário:
 ```
+
+**Se QA retornar BLOCKER em auth:**
+
+```
+⛔ AUTH GATE BLOCKER — Build pausado
+
+Issues encontrados:
+  [lista de BLOCKERs do QA Report com arquivo:linha]
+
+Auth com BLOCKER = build não avança. Sem exceções.
+
+Opções:
+  1. Corrigir os issues acima e confirmar "pode continuar"
+  2. Substituir auth por /auth completo (recomendado se > 2 BLOCKERs)
+
+Aguardando confirmação para retomar.
+```
+
+Aguardar resposta explícita do usuário antes de continuar qualquer implementação.
 
 ---
 
@@ -640,7 +658,7 @@ Próximo: merge feature/[nome] em main quando pronto.
 
 1. **Nunca pule a pesquisa** — features de UI sem `RESEARCH.md` resultam em soluções genéricas sem embasamento real.
 2. **Pausas obrigatórias** após Fase 1 (clarificação) e Fase 2 (aprovação do plano). Fora dessas pausas, execução é totalmente autônoma.
-3. **Checkpoints** ao final de cada fase e sempre que estimar ~60k tokens consumidos.
+3. **Checkpoints** ao final de cada fase e sempre que estimar ~60k tokens (write checkpoint) / ~80k (compact recommended) consumidos.
 4. **Progress markers** em todos os pontos (`▶ [N/3] Phase Name`).
 5. **Autonomia máxima dentro de cada fase** — decisões de arquitetura, naming, padrões e dependências são feitas pelos agentes sem perguntar ao usuário.
 6. **Decisões documentadas** — toda escolha não-óbvia é registrada no handoff do agente que a tomou.

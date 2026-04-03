@@ -160,19 +160,36 @@ Apresenta as 3 estratégias com recomendação baseada no scale declarado:
 
 > Gera seed data estruturado para desenvolvimento e testes.
 
-Cria três categorias de seed:
+### Quando cada seed é gerado
 
-**Seed de desenvolvimento** (`src/shared/seeds/dev.ts`):
-- Dados variados que cobrem todos os estados da UI (listas vazias, listas cheias, estados de erro, edge cases visuais)
+| Seed | Quando gerar | Automático? |
+|------|-------------|-------------|
+| **Dev** | Sempre — todo projeto com UI precisa de dados variados para design e teste visual | ✅ Automático ao invocar `/dba seed` |
+| **Test** | Sempre — fixtures são necessários para unit e integration tests desde o início | ✅ Automático ao invocar `/dba seed` |
+| **Staging** | Sob demanda — apenas quando staging/demo existe ou está sendo configurado | ⚡ Sob demanda: `/dba seed staging` |
+
+### Seed de desenvolvimento (`src/shared/seeds/dev.ts`)
+
+**Gerado automaticamente.** Cobre todos os estados visuais da UI:
+- Lista vazia (para testar empty states)
+- Lista com 1 item (para testar singular)
+- Lista com muitos itens (para testar paginação e scroll)
+- Items com campos opcionais preenchidos e outros vazios
+- Items em diferentes estados (ativo/inativo, pendente/aprovado, etc.)
 - Credenciais de usuário de teste documentadas no README de desenvolvimento
 
-**Seed de testes** (`tests/fixtures/`):
-- Dados mínimos e determinísticos para cada caso de teste
-- Factories por entidade: funções que criam uma entidade com valores padrão + overrides por parâmetro
+### Seed de testes (`tests/fixtures/`)
 
-**Seed de staging** (`src/shared/seeds/staging.ts`):
-- Dados realistas suficientes para demonstração e QA manual
-- Sem dados pessoais reais — usar dados sintéticos gerados por faker
+**Gerado automaticamente.** Dados mínimos e determinísticos:
+- Factories por entidade: funções `create[Entity](overrides?)` com valores padrão sensatos
+- Uso: `const user = createUser({ role: 'admin' })` — explícito e legível nos testes
+
+### Seed de staging (`src/shared/seeds/staging.ts`)
+
+**Sob demanda.** Dados realistas para demo e QA manual:
+- Suficiente para simular uso real (ex: 5-10 projetos, 20-30 tarefas, 3-5 usuários)
+- Sem dados pessoais reais — usar faker.js para gerar nomes, emails, endereços sintéticos
+- Script de reset: `rtk npm run seed:staging` deve ser idempotente (pode rodar múltiplas vezes)
 
 ---
 

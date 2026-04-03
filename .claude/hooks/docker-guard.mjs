@@ -4,7 +4,8 @@
  *
  * Triggered: SessionStart
  * Checks: docker-compose.yml exists + Docker daemon is running
- * Advisory only — adds warning context, does not hard block.
+ * Hard-blocks (exit 2) when compose file exists and Docker is not running.
+ * Advisory only when no compose file (new project — scaffold will create it).
  */
 
 import { existsSync, readFileSync } from 'fs';
@@ -43,16 +44,23 @@ async function main() {
   const hasCompose = composeFileExists();
   const isRunning = dockerRunning();
 
-  if (!isRunning) {
+  if (hasCompose && !isRunning) {
+    // Hard-block: project requires Docker (compose file exists) but daemon is not running.
+    // Exit 2 prevents session context injection and signals a blocking condition.
+    process.stderr.write(
+      '⛔ RULE-DOCKER-001 [BLOCKED] — docker-compose.yml found but Docker is not running.\n' +
+      'Start Docker Desktop (macOS/Windows) or run: sudo systemctl start docker (Linux)\n' +
+      'Then retry. All services for this project MUST run in Docker containers.\n'
+    );
+    process.exit(2);
+  }
+
+  if (!isRunning && !hasCompose) {
+    // Advisory: new project, no compose file yet. Warn but don't block.
     lines.push('');
     lines.push('⚠️  DOCKER NOT RUNNING — [RULE-DOCKER-001]');
-    lines.push('All services must run in Docker containers.');
-    lines.push('Start Docker Desktop or run: sudo systemctl start docker');
-    if (!hasCompose) {
-      lines.push('');
-      lines.push('⚠️  docker-compose.yml not found at project root.');
-      lines.push('Run /build to generate the full Docker setup for this project.');
-    }
+    lines.push('No docker-compose.yml found yet (new project). Docker will be required once /scaffold runs.');
+    lines.push('Start Docker before running /build or /scaffold.');
   } else if (hasCompose) {
     lines.push('');
     lines.push('🐳 Docker running. Services via docker-compose.');

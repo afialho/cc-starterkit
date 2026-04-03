@@ -218,41 +218,171 @@ FEATURES FORA DO ESCOPO (sugestão)
 
 ---
 
+## Fase 3.5 — Detecção de plataforma + delegação mobile
+
+> **Emitir:** `▶ [3.5/6] Detecção de plataforma`
+
+Antes de iniciar a implementação, verificar se o app é mobile-native:
+
+**Sinais de app mobile:**
+- `react-native` ou `expo` em `package.json`
+- Diretórios `android/` ou `ios/` na raiz
+- Arquivos `.xcodeproj`, `MainActivity.java`, ou `app.json` (Expo)
+
+**Se mobile detectado:**
+
+```
+App mobile detectado (React Native / Expo).
+O redesign mobile tem protocolo específico — delegando para /mobile.
+
+▶ Iniciando /mobile redesign com contexto do inventário (Fase 1) + proposta aprovada (Fase 3)...
+```
+
+Passa como contexto para `/mobile`:
+- Inventário completo de telas e features (Fase 1)
+- Proposta de navegação + design aprovada (Fase 3)
+- Design system escolhido
+
+`/mobile` assume o controle e executa seu próprio pipeline (TDD com RNTL, Detox E2E, EAS Build).
+`/redesign` não continua após a delegação.
+
+**Se app web:** continuar para Fase 4.
+
+---
+
 ## Fase 4 — Implementação
 
 > **Emitir:** `▶ [4/6] Implementação`
 
+### Stack de frontend padrão (aplicada em todo redesign web)
+
+O redesign usa o ecossistema frontend completo do kit:
+
+| Camada | Tecnologia | Responsabilidade |
+|--------|-----------|-----------------|
+| Design system | shadcn/ui + Tailwind CSS | Componentes acessíveis, tokens de design, tema claro/escuro |
+| Ícones | Lucide Icons | Biblioteca consistente, co-designed com shadcn/ui |
+| Animações | Framer Motion | Page transitions, micro-interactions, skeleton loaders |
+| Forms | React Hook Form + Zod | Validação type-safe com feedback em tempo real |
+| Estado global | Zustand ou TanStack Query | Conforme detectado no inventário do app |
+| Testes unitários | Vitest + Testing Library | TDD: RED → GREEN → REFACTOR em cada componente |
+| Testes E2E | Cypress | Fluxo completo por feature, antes de avançar |
+| QA visual | agent-browser via /qa-loop | Verificação com browser real após cada seção |
+
 ### Se modo REWRITE
 
 ```bash
-# Criar nova pasta
+# Criar nova pasta ao lado do original — nunca dentro
 mkdir ../[projeto]-redesign
 cd ../[projeto]-redesign
 ```
 
-Executar em sequência:
+Executar em sequência estrita:
 
-1. **`/scaffold fullstack`** — estrutura, Docker, Git, GitHub (novo repo com sufixo `-redesign`)
-2. **Foundation** — `/ui` para design system + layout base aprovado na Fase 3
-3. **Auth** — `/auth scaffold` replicando o sistema de auth existente
-4. **Features** — implementar feature por feature na ordem do inventário:
-   - Começar pelas mais críticas (core do produto)
-   - Para cada feature: `/feature-dev` com contexto do inventário + proposta aprovada
-   - Gate de paridade após cada feature: confirmar que comportamento original está presente
+#### Passo 1 — Scaffold
+```
+/scaffold fullstack
+```
+Gera: estrutura hexagonal, Docker, GitHub Actions (se scale ≥ Product), Git, GitHub repo com sufixo `-redesign`.
 
-Contexto passado a cada agente de implementação:
-- Inventário da feature correspondente (como funciona no app atual)
-- Proposta de UX aprovada (como deve ficar no novo app)
-- Design system definido na Fase 3
+#### Passo 2 — Foundation com pipeline /ui completo
+
+```
+/ui foundation
+```
+
+O `/ui` executa internamente:
+1. **Pesquisa visual** — agent-browser em Dribbble / Mobbin / Awwwards para referências do tipo de produto
+2. **TDD do design system** — testes para tokens, temas e componentes base antes de implementar
+3. **`/frontend-design`** (plugin oficial) — gera layout base, design tokens, tema claro/escuro conforme Fase 3
+4. **a11y check** — estrutura semântica, contraste WCAG AA, keyboard nav
+5. **browser-qa gate** — agent-browser verifica layout em desktop + mobile antes de avançar
+
+```
+⛔ GATE Foundation: /qa-loop (dimensões: qa-design + qa-a11y)
+   PASS obrigatório antes de qualquer feature
+```
+
+#### Passo 3 — Auth
+
+```
+/auth scaffold
+```
+
+Replica o sistema de auth do app original. Gate obrigatório:
+
+```
+⛔ GATE Auth: /qa-loop (dimensões: qa-backend + qa-security + qa-e2e)
+   Se BLOCKER → redesign pausado. Corrigir auth antes de qualquer feature.
+```
+
+#### Passo 4 — Features (uma por vez, na ordem do inventário)
+
+Para **cada feature** do inventário (da mais crítica para as secundárias):
+
+```
+Contexto obrigatório para o agente de implementação:
+  - Como a feature funciona no app original (inventário Fase 1)
+  - Como deve ficar no novo app (proposta aprovada Fase 3)
+  - Design system + componentes disponíveis (Passo 2)
+  - Schema da feature se entidades novas → /dba design antes de implementar
+```
+
+**Sequência TDD por feature:**
+
+```
+1. Gherkin scenario → tests/bdd/features/[feature].feature
+2. Unit tests (RED) → tests/unit/[feature].test.ts
+3. Implementação (GREEN) — componentes com shadcn/ui + Lucide + Framer Motion
+4. Refactor (REFACTOR) — extrair para componentes reutilizáveis se necessário
+5. E2E test → tests/e2e/[feature].cy.ts
+```
+
+**Gate por feature:**
+
+```
+⛔ PHASE GATE [feature]:
+   □ rtk npx vitest run --coverage (unit tests passando)
+   □ rtk npx cypress run --spec tests/e2e/[feature].cy.ts
+   □ /qa-loop (escopo: [feature], dimensões: qa-design + qa-ux + qa-a11y + qa-e2e)
+   □ /browser-qa <url> (navegação exaustiva da feature)
+   PASS obrigatório antes de avançar para a próxima feature
+   Fix loop automático (máx 3 iterações) → escalar se persistir
+```
+
+**Gate de paridade por feature:**
+
+```
+PARIDADE [feature]:
+  □ Comportamento equivalente ao original?
+  □ Dados/integrações funcionam?
+  □ Estados (loading / error / empty) implementados?
+  □ Responsiva em mobile viewport?
+```
 
 ### Se modo IN-PLACE
 
-Substituição componente por componente:
-- Instalar shadcn/ui + Tailwind no projeto existente
-- Criar design tokens a partir das escolhas da Fase 3
-- Substituir por seção (header → sidebar → páginas principais → páginas secundárias)
-- Nunca tocar lógica de negócio — apenas apresentação
-- Cypress E2E em cada seção substituída antes de avançar
+Substituição seção por seção — lógica de negócio intocada:
+
+```
+Instalar: shadcn/ui + Tailwind + Lucide + Framer Motion no projeto existente
+Criar: design tokens (cores, tipografia, espaçamentos) da proposta Fase 3
+```
+
+Sequência de substituição:
+
+```
+1. Header / Navbar → gate: /qa-loop (qa-design + qa-ux) + /browser-qa
+2. Sidebar / Navegação lateral → gate: /qa-loop + /browser-qa
+3. Páginas principais (core do produto) → gate por página
+4. Páginas secundárias → gate por página
+5. Modais / Drawers / Overlays → gate final
+```
+
+**Regras in-place:**
+- Nunca tocar arquivos fora de `components/`, `app/` ou `pages/` — lógica de negócio, API routes e serviços permanecem intactos
+- Para cada componente substituído: escrever teste de comportamento antes de substituir (garante paridade)
+- Se um componente original não tem teste → escrever o teste documentando o comportamento atual antes de substituir
 
 ---
 
@@ -286,12 +416,21 @@ Issues encontrados → fix automático antes de avançar para Fase 6.
 
 > **Emitir:** `▶ [6/6] QA final`
 
+QA completo do app inteiro (não só a última feature):
+
 ```
-/qa-loop (escopo: app completo, dimensões: qa-design + qa-ux + qa-a11y + qa-e2e)
+/qa-loop (escopo: app completo, dimensões: qa-design + qa-ux + qa-a11y + qa-code + qa-security + qa-e2e + qa-perf)
+```
+
+Seguido de navegação exaustiva com browser real:
+
+```
 /browser-qa <url-do-novo-app>
 ```
 
-Fix loop automático até PASS.
+O `/browser-qa` crawla toda a UI (menus, fluxos, estados, viewports mobile/desktop) e substitui `qa-e2e` individual.
+
+Fix loop automático até PASS em todas as dimensões.
 
 ### Output final
 
@@ -333,5 +472,8 @@ App legado permanece em [path original] — nenhuma alteração foi feita.
 2. **Proposta de UX antes de código** — nenhuma linha de implementação começa sem aprovação da Fase 3
 3. **Paridade é obrigatória** — toda feature do app original deve estar no novo, ou ter sido explicitamente removida com aprovação do usuário
 4. **Melhorias de UX são sugestões** — o usuário decide quais aceitar; nada é imposto
-5. **Design system do kit** — shadcn/ui + Tailwind como base, customizado com as escolhas aprovadas
-6. **Rewrite recomendado para legacy** — AngularJS, Backbone, Ember, jQuery-as-framework sempre recomenda rewrite; nunca tenta migração incremental de frameworks sem caminho oficial
+5. **Design system do kit** — shadcn/ui + Tailwind + Lucide + Framer Motion como base; `/ui` pipeline para tudo que é visual
+6. **TDD em toda implementação** — Gherkin → unit test (RED) → implementação (GREEN) → refactor; nenhum componente sem teste
+7. **Gate de qualidade por feature** — `/qa-loop` + `/browser-qa` depois de cada feature; nunca acumular e testar tudo no final
+8. **Rewrite para legacy** — AngularJS, Backbone, Ember, jQuery-as-framework → sempre rewrite; nunca tenta migração incremental sem caminho oficial
+9. **Mobile detectado → /mobile** — apps React Native / Expo delegam para `/mobile` que tem o pipeline nativo correto

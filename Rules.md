@@ -167,7 +167,7 @@
 - Every external dependency (DB, cache, queues, etc.) runs via `docker-compose.yml`
 - Never connect to host machine services — always use container service names
 - `docker-compose.yml` required at project root before any backend implementation
-- *Enforcement: docker-guard hook warns at SessionStart if Docker is not running*
+- *Enforcement: docker-guard hook hard-blocks (exit 2) at SessionStart if docker-compose.yml exists and Docker is not running. Advisory only for new projects without a compose file.*
 
 ### RULE-DOCKER-002
 **One service per container.**

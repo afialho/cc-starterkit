@@ -19,15 +19,18 @@ Orquestrador de QA multi-dimensional. Lança agentes QA em waves paralelas, agre
 
 | Contexto | Dimensões |
 |---------|-----------|
-| Foundation [3a] — layout + design system | `qa-design` |
+| Foundation [3a] — layout + design system | `qa-design` `qa-a11y` |
 | Foundation [3b] — auth | `qa-backend` `qa-security` `qa-e2e` |
-| Após feature com UI + backend | `qa-design` `qa-ux` `qa-backend` `qa-security` `qa-e2e` |
-| Após feature backend-only | `qa-backend` `qa-security` `qa-code` |
-| Após feature UI-only | `qa-design` `qa-ux` `qa-a11y` |
-| Após feature com endpoints ou UI heavy | dimensões acima + `qa-perf` |
+| Após feature com UI + backend (ex: dashboard de tarefas) | `qa-design` `qa-ux` `qa-a11y` `qa-backend` `qa-security` `qa-e2e` |
+| Após feature backend-only (ex: job agendado, webhook) | `qa-backend` `qa-security` `qa-code` |
+| Após feature UI-only (ex: novo componente, página estática) | `qa-design` `qa-ux` `qa-a11y` |
+| Após feature com listas paginadas ou endpoints de busca | dimensões acima + `qa-perf` |
+| Após feature com upload, export, ou operações pesadas | dimensões acima + `qa-perf` |
+| Dashboard com muitos dados ou charts (UI heavy) | `qa-design` `qa-ux` `qa-perf` `qa-a11y` |
+| Feature de pagamento ou dados sensíveis | + `qa-security` obrigatório |
 | Após research/plan | `qa-research` `qa-plan` |
 | Post-deploy | `qa-smoke` |
-| Final do build | todas as dimensões |
+| Final do build | todas as dimensões + `/browser-qa` |
 | Manual: `/qa-loop <scope>` | inferir dimensões do escopo |
 
 ---

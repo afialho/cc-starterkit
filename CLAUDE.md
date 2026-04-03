@@ -67,12 +67,13 @@ Full rules: `Rules.md` | Agent protocol: `Agents.md`
 
 ## Context Budget
 
-System context starts ~18k tokens. Threshold: **60k total**.
+System context starts ~18k tokens.
 
-At threshold → write `.claude/checkpoint.md` → output `↺ Contexto ~60k — escrevi checkpoint. Recomendo /compact.`
-After /compact → SessionStart hook injects checkpoint → `/resume` retoma autonomamente.
-
-Checkpoint format: skill, phase, files modified, exact next step, key decisions.
+| Threshold | Action |
+|-----------|--------|
+| **60k** | Write `.claude/checkpoint.md` immediately — capture: skill in progress, phase N/N, files modified, exact next step, key decisions. Emit: `↺ Contexto ~60k — checkpoint escrito. Recomendo /compact.` |
+| **80k** | Strongly recommended: run `/compact`. After compact → SessionStart injects checkpoint → `/resume` retoma autonomamente. |
+| **100k** | Absolute limit — context quality degrades. Always compact before reaching this. |
 
 Token estimates: file read ~1k | agent call ~8k | long response ~2k | phase ~3k
 
@@ -107,15 +108,15 @@ Before each phase/step: `▶ [N/Total] Phase Name`
 |-------|---------|
 | `/ideate` | Entrevista colaborativa → feature map → MVP scope → IDEAS.md → handoff para /build |
 | `/scaffold` | Inicializa projeto do zero: estrutura, Docker, testing, Git, GitHub. Chamado automaticamente pelo /build se projeto vazio |
-| `/build` | Orquestrador completo: research → planning (gera PLAN.md) → implement. Entry point para tudo |
-| `/adapt` | Auto-configure o kit para um projeto existente (rodar uma vez após adopt.sh) |
+| `/build` | Orquestrador completo: research → planning (gera PLAN.md) → implement. Entry point para tudo. Auto-routes: projeto vazio → /scaffold | intenção de transformação → /redesign|/refactor|/modernize | ideia vaga → /ideate |
+| `/adapt` | **Kit config para projeto existente** — detecta stack + padrão arquitetural + test framework → atualiza architecture.json, CLAUDE.md e hooks. Rodar UMA VEZ após adotar o kit em um projeto existente. Não faz refatoração de código (isso é /refactor). |
 
 ### Transformação de projetos existentes
 | Skill | Purpose |
 |-------|---------|
-| `/redesign` | Moderniza app existente: analisa, detecta modo (rewrite nova pasta ou in-place), propõe nova UX com reorganização de navegação, implementa com paridade total |
-| `/refactor` | Refatoração estruturada: clean, extract, layer, inline, module. Safety net de testes antes de qualquer mudança |
-| `/modernize` | Transforma monolito: identifica bounded contexts, define target (hexagonal, modular, microservices), migra com Strangler Fig (zero downtime) |
+| `/redesign` | Moderniza a **interface** de um app: analisa, detecta modo (rewrite nova pasta ou in-place), pesquisa referências visuais, propõe nova UX, implementa com TDD + pipeline /ui completo (shadcn/ui, Lucide, Framer Motion, a11y, browser-qa). Mobile-aware: detecta React Native → delega para /mobile. |
+| `/refactor` | Melhora a **qualidade do código** existente: clean, extract, layer, inline, module. Safety net de testes antes de qualquer mudança. Use para pagar dívida técnica antes de implementar features. |
+| `/modernize` | Transforma a **arquitetura** de um monolito: identifica bounded contexts, define target (hexagonal, modular, microservices), migra com Strangler Fig (zero downtime) |
 
 ### Desenvolvimento de features
 | Skill | Purpose |

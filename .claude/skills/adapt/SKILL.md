@@ -11,6 +11,25 @@ Detecta a stack real e adapta automaticamente todas as configurações.
 
 ---
 
+## Quando usar /adapt vs. outras skills
+
+| Quero... | Skill certa |
+|----------|------------|
+| **Instalar o kit** em um projeto que já existe e configurá-lo para a stack do projeto | `/adapt` (esta skill) |
+| **Melhorar a qualidade do código** — limpar, extrair, reorganizar camadas | `/refactor` |
+| **Mudar a interface** do app — novo visual, nova UX, novos componentes | `/redesign` |
+| **Mudar a arquitetura** — hexagonal, modular, microsserviços | `/modernize` |
+| **Construir algo novo** — feature, produto, protótipo | `/build` |
+
+**Regra prática:**
+- Rodou `adopt.sh` agora? → `/adapt` primeiro, depois `/build` para features
+- O kit já está instalado e você quer melhorar código? → `/refactor`
+- O kit já está instalado e você quer mudar arquitetura? → `/modernize`
+
+---
+
+---
+
 ## Phase 1 — Exploração
 
 > **Emit:** `▶ [1/5] Explorando o projeto`

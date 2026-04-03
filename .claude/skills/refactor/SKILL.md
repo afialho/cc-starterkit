@@ -159,6 +159,24 @@ Para cada violação de camada identificada na Fase 1:
   5. Verificar testes verdes
 ```
 
+**Exemplo prático — lógica de negócio no controller:**
+
+```
+Violação identificada: PaymentController.ts:45 — calcula desconto diretamente no handler
+  → deveria estar em: src/domain/pricing/DiscountCalculator.ts
+
+Passo 1: Criar src/domain/pricing/DiscountCalculator.ts (com unit test primeiro)
+Passo 2: Criar src/ports/outbound/DiscountCalculator.ts (interface)
+Passo 3: Mover lógica do controller para o domain
+Passo 4: Controller injeta DiscountCalculator via construtor (composition root)
+Passo 5: rtk npm test → verde
+```
+
+Outros exemplos comuns:
+- DB query diretamente em use case → mover para infrastructure adapter + criar port
+- HTTP call em domain entity → mover para infrastructure + injetar via port
+- Config/secrets lidos em domain → mover para shared/config + injetar
+
 ### Scope: inline
 
 ```
