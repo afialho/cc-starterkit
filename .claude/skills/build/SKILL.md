@@ -49,7 +49,20 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
               ├─ [3a] Foundation (design system + layout) → agent-browser → GATE
               ├─ [3b] Auth (register/login/logout) → agent-browser → GATE obrigatório
               ├─ Feature simples → /feature-dev + phase gate por feature
-              └─ Feature complexa (3+ componentes) → /agent-teams + phase gate por wave
+              ├─ Feature complexa (3+ componentes) → /agent-teams + phase gate por wave
+              │
+              ├─ [CONCLUSÃO] Launch + Browser Audit + Commit
+              │   ├─ Test suite completa (unit + BDD + Cypress + k6)
+              │   ├─ docker compose up -d → health check → URL local
+              │   ├─ /browser-qa <url> → navega TODAS as telas, testa TODOS os elementos
+              │   │   └─ Fix loop (max 3 iter) até 0 BLOCKER/MAJOR
+              │   ├─ /qa-loop (qa-code + qa-security + qa-backend + qa-perf)
+              │   ├─ Code review → PASS
+              │   ├─ Scale gates (se Product/Scale)
+              │   ├─ Commit
+              │   └─ BUILD COMPLETE — app rodando em http://localhost:[porta]
+              │
+              └─ Docker NÃO é derrubado — app permanece acessível
 ```
 
 Checkpoints automáticos ao final de cada fase e sempre que o contexto estimado atingir ~60k tokens (write checkpoint) / ~80k (compact recommended).
@@ -501,6 +514,30 @@ Consulte a skill `/mobile` para o protocolo completo de cada fase.
 
 Antes de implementar qualquer feature de produto, executar em sequência estrita:
 
+#### [PRE] Garantir agent-browser + Docker
+
+Antes de [3a], verificar que as ferramentas de QA visual estão disponíveis:
+
+**agent-browser:**
+```bash
+rtk claude mcp list
+```
+Se "vercel" não estiver na lista → instalar:
+```bash
+rtk claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest
+```
+Verificar novamente. Se falhar após 2 tentativas → parar e informar o usuário.
+**Sem agent-browser, os gates visuais [3a] e [3b] não podem funcionar.**
+
+**Docker:**
+```bash
+rtk docker compose up -d
+rtk docker compose ps
+```
+A aplicação deve estar acessível antes dos gates visuais. Determinar URL (`http://localhost:[porta]`).
+
+---
+
 #### [3a] Design System + Layout Base
 
 1. Instalar e configurar shadcn/ui + tema (cores, fontes, dark/light mode conforme tipo de app)
@@ -554,6 +591,7 @@ Após CADA feature implementada (não apenas ao final do build):
 **Web:**
 ```
 PHASE GATE — executar após cada feature:
+  □ Docker rodando: rtk docker compose ps (se não → rtk docker compose up -d)
   □ rtk npx cypress run --spec tests/e2e/[feature].cy.ts
   □ /qa-loop (escopo: [feature], dimensões: conforme tipo)
       UI only      → qa-design + qa-ux + qa-e2e
@@ -630,7 +668,7 @@ Se contexto atingir ~60k em qualquer ponto:
 
 ### Conclusão da implementação
 
-Após implementação completa:
+Após implementação completa de TODAS as features:
 
 1. **Roda suite de testes completa:**
    ```bash
@@ -640,15 +678,54 @@ Após implementação completa:
    rtk k6 run tests/load/[f].js # se endpoint foi adicionado
    ```
 
-2. **QA Final** (todas as dimensões aplicáveis ao build):
-   ```
-   /qa-loop (escopo: build completo, dimensões: todas)
-   ```
-   Fix loop automático até PASS. Se escalar → apresentar ao usuário antes do commit.
+2. **Launch — Subir a aplicação (OBRIGATÓRIO):**
 
-3. **Loop de correção** (se falhas de testes unitários/BDD): spawna agentes de fix targeted. Repete até tudo verde.
+   > **Emitir:** `▶ [3/3] Launch — subindo aplicação`
 
-4. **Code review global** (agente code-reviewer):
+   Antes de qualquer QA visual ou browser audit, a aplicação **DEVE** estar rodando em Docker:
+
+   ```bash
+   rtk docker compose up -d
+   rtk docker compose ps        # verificar que todos os serviços estão healthy/running
+   ```
+
+   - Aguardar health check de todos os serviços (tentar até 60s com polling)
+   - Se algum serviço falhar → `rtk docker compose logs [serviço]` → corrigir → re-launch
+   - Determinar URL: ler `docker-compose.yml` → porta exposta do serviço web → `http://localhost:[porta]`
+   - Emitir: `Aplicação rodando em http://localhost:[porta]`
+
+   **Se Docker não subir após 3 tentativas de fix → escalar para o usuário. Build não avança sem app rodando.**
+
+3. **Browser Audit exaustivo (OBRIGATÓRIO para apps com UI):**
+
+   > **Emitir:** `▶ [3/3] Browser Audit — navegação exaustiva`
+
+   Com a aplicação rodando, executar auditoria completa de TODAS as telas e TODOS os componentes:
+
+   ```
+   /browser-qa http://localhost:[porta]
+   ```
+
+   Este é o **gate final de qualidade visual e funcional**:
+   - Navega por TODAS as páginas (públicas + protegidas)
+   - Testa TODOS os elementos interativos (botões, links, forms, menus, modais)
+   - Classifica TODOS os erros encontrados (BLOCKER / MAJOR / MINOR)
+   - Fix loop automático (max 3 iterações) até zero BLOCKER/MAJOR
+   - Se escalar → apresentar ao usuário antes do commit
+   - **A aplicação DEVE permanecer rodando** durante todo o audit e após o build
+
+4. **QA Final — dimensões estáticas** (complementar ao browser audit):
+   ```
+   /qa-loop (escopo: build completo, dimensões: qa-code + qa-security + qa-backend + qa-perf)
+   ```
+   Apenas dimensões que analisam código/arquitetura — as dimensões visuais (qa-design, qa-ux, qa-a11y, qa-e2e)
+   já foram cobertas pelo `/browser-qa` no passo anterior.
+   Fix loop automático até PASS.
+
+5. **Loop de correção** (se falhas de testes unitários/BDD): spawna agentes de fix targeted. Repete até tudo verde.
+   Após cada rodada de fixes, verificar se Docker ainda está healthy: `rtk docker compose ps`
+
+6. **Code review global** (agente code-reviewer):
    - Conformidade hexagonal
    - Princípios SOLID
    - Cobertura de testes
@@ -710,13 +787,21 @@ Se qualquer skill retornar BLOCKER → fix loop antes do commit.
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
 
-5. **Apresenta summary final ao usuário:**
+5. **Verificar que Docker continua rodando:**
+   ```bash
+   rtk docker compose ps   # confirmar todos os serviços healthy
+   ```
+   Se algum serviço caiu durante os fixes → `rtk docker compose up -d` novamente.
+
+6. **Apresenta summary final ao usuário:**
 
 ```
 BUILD COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Feature:        [nome da feature]
 Branch:         feature/[nome]
+URL:            http://localhost:[porta]
+Docker:         running (docker compose up)
 
 O que foi construído:
   [2-4 bullets descrevendo o que foi implementado]
@@ -733,13 +818,17 @@ Testes:
   Load:        p95 Xms @ Y rps  (se aplicável)
 
 Gates de qualidade:
-  Foundation:  ✅ Design system + layout verificado (agent-browser)
-  Auth:        ✅ Register/login/logout verificado (agent-browser + Cypress)
-  Per-feature: ✅ Phase gate passou em cada feature
-  Browser:     ✅ Verificação E2E final completa (agent-browser)
+  Foundation:    ✅ Design system + layout verificado (agent-browser)
+  Auth:          ✅ Register/login/logout verificado (agent-browser + Cypress)
+  Per-feature:   ✅ Phase gate passou em cada feature
+  Browser Audit: ✅ Todas as telas navegadas, todos os componentes testados (agent-browser)
+  Static QA:     ✅ Code + Security + Backend + Perf verificados
 
 Protocolo:    [feature-dev | agent-teams]
 Review:       PASS
+
+A aplicação está rodando em http://localhost:[porta].
+Docker NÃO foi derrubado — a app permanece acessível para testes manuais.
 
 Próximo: merge feature/[nome] em main quando pronto.
 ```
@@ -755,6 +844,9 @@ Próximo: merge feature/[nome] em main quando pronto.
 5. **Autonomia máxima dentro de cada fase** — decisões de arquitetura, naming, padrões e dependências são feitas pelos agentes sem perguntar ao usuário.
 6. **Decisões documentadas** — toda escolha não-óbvia é registrada no handoff do agente que a tomou.
 7. **TDD não é negociável** — teste failing antes de qualquer implementação, sem exceções.
+8. **Docker sempre rodando antes de QA visual** — toda wave visual (qa-design, qa-ux, qa-a11y, qa-e2e) e todo `/browser-qa` requerem `docker compose up`. Verificar com `docker compose ps` antes de lançar agentes visuais.
+9. **App entregue rodando** — o build SEMPRE termina com a aplicação acessível via Docker em `http://localhost:[porta]`. Docker NÃO é derrubado após o build. O BUILD COMPLETE inclui a URL.
+10. **Browser Audit é obrigatório** — ao final do build, `/browser-qa` roda com navegação exaustiva (todas as telas, todos os componentes). Não é opcional. Fix loop até zero BLOCKER/MAJOR.
 
 ---
 
@@ -768,5 +860,7 @@ Próximo: merge feature/[nome] em main quando pronto.
 | Dependência faltando | Instala, documenta no handoff |
 | Requisito ambíguo | Escolhe a interpretação mais simples, documenta a premissa |
 | Workstream BLOQUEADO (impossível) | Reporta no handoff, orquestrador decide se pula ou adapta |
+| Docker não sobe | Ler logs, corrigir config/código, re-launch. Max 3 tentativas → escalar para usuário |
+| App não responde na URL | Verificar porta, health check, logs do serviço web. Corrigir e re-launch |
 
 Agentes nunca pedem ajuda ao usuário durante a execução. Decidem, documentam e continuam.

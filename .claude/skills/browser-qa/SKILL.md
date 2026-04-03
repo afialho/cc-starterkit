@@ -30,22 +30,59 @@ Ambos rodam em loop até a aplicação estar **100% funcional** — zero falhas 
 
 ---
 
-## Pré-requisito — vercel:agent-browser
+## Pré-requisito — vercel:agent-browser (OBRIGATÓRIO)
 
-Antes de qualquer fase, verificar se `vercel:agent-browser` MCP está disponível:
+Antes de qualquer fase, garantir que `vercel:agent-browser` MCP está disponível e funcional.
 
-```bash
-rtk claude mcp list 2>/dev/null | grep -q "vercel"
-```
-
-Se **não estiver instalado**, instalar automaticamente:
+### Verificação
 
 ```bash
-rtk claude mcp add vercel npx -y @vercel/mcp-server
+# Passo 1 — Checar se MCP está registrado
+rtk claude mcp list
 ```
 
-Emitir: `vercel:agent-browser instalado. Continuando...`
-Emitir erro e parar SOMENTE se a instalação falhar.
+Verificar se a saída contém "vercel" na lista de MCPs configurados.
+
+### Instalação (se não encontrado)
+
+```bash
+# Passo 2 — Instalar o MCP
+rtk claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest
+```
+
+### Validação pós-instalação
+
+```bash
+# Passo 3 — Confirmar que foi registrado
+rtk claude mcp list
+```
+
+Verificar novamente que "vercel" aparece na lista.
+
+### Se falhar
+
+Se após instalação o MCP não aparecer na lista:
+1. Tentar remover e reinstalar:
+   ```bash
+   rtk claude mcp remove vercel
+   rtk claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest
+   ```
+2. Verificar novamente com `rtk claude mcp list`
+3. Se ainda falhar após 2 tentativas → **parar e escalar para o usuário**:
+
+```
+⛔ AGENT-BROWSER NÃO DISPONÍVEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tentei instalar vercel:agent-browser MCP 2 vezes, sem sucesso.
+
+Instale manualmente:
+  claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest
+
+Após instalar, execute /browser-qa novamente.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Não prosseguir sem agent-browser funcional.** Este é o engine de navegação visual — sem ele, o browser-qa não pode testar a aplicação.
 
 ---
 
@@ -54,13 +91,31 @@ Emitir erro e parar SOMENTE se a instalação falhar.
 > **Emitir:** `▶ [BROWSER-QA 0/6] Configuração`
 
 1. Receber URL base da aplicação (argumento ou inferir do projeto — `localhost:3000` por padrão)
-2. Ler arquivos de rotas para discovery antecipado:
+
+2. **Verificar que a aplicação está rodando (OBRIGATÓRIO):**
+
+   ```bash
+   # Verificar se Docker está up
+   rtk docker compose ps
+   ```
+
+   - Se serviços **não estão rodando** → subir automaticamente:
+     ```bash
+     rtk docker compose up -d
+     ```
+   - Aguardar health check (polling até 60s): `rtk docker compose ps` até todos healthy/running
+   - Se falhar após 60s → `rtk docker compose logs` → emitir erro com logs e parar
+   - Testar acesso à URL: `curl -s -o /dev/null -w "%{http_code}" http://localhost:[porta]`
+   - Se URL não responde → verificar logs, corrigir, re-launch (max 3 tentativas)
+   - **Não prosseguir para Discovery sem URL acessível**
+
+3. Ler arquivos de rotas para discovery antecipado:
    - Next.js: `app/**/page.tsx`, `pages/**/*.tsx`
    - React Router: arquivos com `<Route`, `createBrowserRouter`
    - Express/Rails/Django: routes files
-3. Ler `PLAN.md` ou `RESEARCH.md` se existirem — extrair lista de requisitos de interface para validação posterior
-4. Definir escopo: URL base + lista de rotas conhecidas + credenciais de teste (se auth existe)
-5. Emitir: `Escopo: [N] rotas conhecidas + crawl dinâmico. URL: [url]. Auth: [sim/não].`
+4. Ler `PLAN.md` ou `RESEARCH.md` se existirem — extrair lista de requisitos de interface para validação posterior
+5. Definir escopo: URL base + lista de rotas conhecidas + credenciais de teste (se auth existe)
+6. Emitir: `Aplicação acessível em [url]. Escopo: [N] rotas conhecidas + crawl dinâmico. Auth: [sim/não].`
 
 ---
 

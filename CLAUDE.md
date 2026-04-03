@@ -1,7 +1,6 @@
-# CLAUDE.md — [Project Name]
+# CLAUDE.md
 
-> Stack-agnostic AI development harness for Claude Code.
-> Replace `[Project Name]` with your project name before using.
+> AI development harness for Claude Code — stack-agnostic, fully autonomous.
 
 ---
 

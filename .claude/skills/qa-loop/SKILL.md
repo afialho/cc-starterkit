@@ -206,6 +206,32 @@ Nota: para audit completo de performance (todas as 6 fases) → invocar /perf-au
 
 > **Emitir:** `▶ [QA 2/6] Visual QA Wave`
 
+### Pré-requisito — verificar agent-browser
+
+Antes de lançar agentes visuais, garantir que `vercel:agent-browser` MCP está disponível:
+
+```bash
+rtk claude mcp list
+```
+
+Se "vercel" **não estiver na lista** → instalar automaticamente:
+
+```bash
+rtk claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest
+```
+
+Verificar novamente com `rtk claude mcp list`. Se ainda não disponível após 2 tentativas → **pular Wave 2 e emitir alerta**:
+
+```
+⚠️ agent-browser não disponível — Wave Visual SKIPPED
+Dimensões qa-design, qa-ux, qa-a11y NÃO foram verificadas.
+Instale manualmente: claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest
+```
+
+**Wave Visual sem agent-browser é um MAJOR no QA Report** — não é silencioso.
+
+### Execução
+
 Usa agent-browser para navegar nas páginas do escopo. Lança em paralelo:
 
 ### Agente: qa-design
