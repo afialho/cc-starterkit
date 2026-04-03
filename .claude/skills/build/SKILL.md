@@ -22,7 +22,9 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
 /build <ideia>
     │
     ├─ [0/3] Fase 0 — Detecção de contexto
-    │         ├─ Ideia vaga? → chama /ideate → aguarda IDEAS.md → retoma automaticamente
+    │         ├─ Projeto vazio? → /scaffold → continua
+    │         ├─ Transformação detectada? → /redesign | /refactor | /modernize (handoff completo)
+    │         ├─ Ideia vaga? → /ideate → aguarda IDEAS.md → retoma automaticamente
     │         └─ ⏸ PAUSA: confirmação do entendimento
     │
     ├─ [1/3] Fase 1 — Research
@@ -77,7 +79,50 @@ Projeto sem estrutura detectada. Preciso inicializar o ambiente antes de impleme
 ▶ Iniciando /scaffold...
 ```
 
-Após `/scaffold` concluir → continuar para Passo B automaticamente.
+Após `/scaffold` concluir → continuar para Passo C automaticamente.
+
+**Passo C — Intenção de transformação? → delegar completamente**
+
+Antes de avaliar se a ideia é vaga, verificar se o argumento ou contexto indica **transformação de algo que já existe**.
+
+Estes são **handoffs completos**: quando detectado, `/build` delega inteiramente para a skill correspondente e **não continua seu próprio pipeline** (não faz research, plan, implement por conta própria).
+
+**Sinais para `/redesign`** (UI/UX transformation):
+- Palavras-chave explícitas: "redesign", "nova interface", "nova UI", "moderniza interface", "novo visual", "refaz o frontend", "novo layout"
+- Framework legacy detectado no codebase (`angular.js v1`, `backbone`, `ember`, `jquery` como framework principal) + intenção de criar novo app
+- "criar um novo app a partir de um existente", "nova aplicação com as mesmas features"
+
+**Sinais para `/refactor`** (code quality improvement):
+- Palavras-chave explícitas: "refactor", "refatorar", "limpar código", "dívida técnica", "technical debt", "código legado", "melhorar qualidade"
+- Contexto: codebase existente + linguagem de qualidade de código sem menção a features novas
+- "extrair módulo", "separar responsabilidades", "desacoplar", "remover dead code"
+
+**Sinais para `/modernize`** (architecture transformation):
+- Palavras-chave explícitas: "modernize", "modernizar", "hexagonal", "microservices", "microsserviços", "modular", "monolito", "strangler fig"
+- Contexto: codebase existente + intenção de mudar a arquitetura como um todo
+- "extrair serviços", "dividir o monolito", "refatorar para hexagonal", "criar módulos independentes"
+
+**Ao detectar qualquer sinal acima:**
+
+```
+Detectei que a intenção é [redesign de interface / refatoração de código / modernização de arquitetura].
+
+Vou delegar para /[redesign|refactor|modernize] que tem o pipeline completo para isso.
+
+▶ Iniciando /[redesign|refactor|modernize]...
+```
+
+Chama a skill correspondente com o argumento recebido como contexto. Não retoma o pipeline do `/build` após a skill concluir.
+
+Se os sinais forem ambíguos (ex: "quero melhorar o app" sem indicar se é UI, código ou arquitetura), perguntar antes de delegar:
+
+```
+Sua intenção é:
+  (A) Modernizar a interface/UX do app → /redesign
+  (B) Melhorar a qualidade do código existente → /refactor
+  (C) Mudar a arquitetura (hexagonal, modular, microservices) → /modernize
+  (D) Construir uma feature nova → continuar com /build
+```
 
 **Passo B — Ideia clara? Verificar (em ordem):**
 
