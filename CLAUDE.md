@@ -110,6 +110,13 @@ Before each phase/step: `▶ [N/Total] Phase Name`
 | `/build` | Orquestrador completo: research → planning (gera PLAN.md) → implement. Entry point para tudo |
 | `/adapt` | Auto-configure o kit para um projeto existente (rodar uma vez após adopt.sh) |
 
+### Transformação de projetos existentes
+| Skill | Purpose |
+|-------|---------|
+| `/redesign` | Moderniza app existente: analisa, detecta modo (rewrite nova pasta ou in-place), propõe nova UX com reorganização de navegação, implementa com paridade total |
+| `/refactor` | Refatoração estruturada: clean, extract, layer, inline, module. Safety net de testes antes de qualquer mudança |
+| `/modernize` | Transforma monolito: identifica bounded contexts, define target (hexagonal, modular, microservices), migra com Strangler Fig (zero downtime) |
+
 ### Desenvolvimento de features
 | Skill | Purpose |
 |-------|---------|
