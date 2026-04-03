@@ -61,13 +61,28 @@ Checkpoints automáticos ao final de cada fase e sempre que o contexto estimado 
 
 ### 0.0 — Detectar se o contexto é suficiente para construir
 
-Antes de qualquer coisa, avaliar o que foi recebido:
+Antes de qualquer coisa, avaliar o que foi recebido **em ordem**:
 
-**Verificar (em ordem):**
+**Passo A — Projeto vazio? → chamar `/scaffold` primeiro**
+
+Verificar se o projeto tem estrutura mínima:
+- Existe `package.json`, `pyproject.toml`, `go.mod`, ou `Gemfile`? OU
+- Existe `src/`, `app/`, `lib/`, `app.py`, ou `main.go`?
+
+Se **nenhum** desses existir → projeto está vazio. Chamar `/scaffold` antes de continuar:
+
+```
+Projeto sem estrutura detectada. Preciso inicializar o ambiente antes de implementar.
+
+▶ Iniciando /scaffold...
+```
+
+Após `/scaffold` concluir → continuar para Passo B automaticamente.
+
+**Passo B — Ideia clara? Verificar (em ordem):**
 
 1. `IDEAS.md` existe na raiz do projeto? → contexto suficiente, pular para 0.1
-2. Projeto já tem código (`src/`, `app/`, `lib/`)? → adicionar feature, pular para 0.1
-3. O argumento passado descreve claramente **o que construir** (feature, entidades, comportamento esperado)? → pular para 0.1
+2. Projeto já tem código e o argumento descreve claramente **o que construir** (feature, entidades, comportamento esperado)? → pular para 0.1
 
 **Sinais de ideia vaga — chamar `/ideate` se qualquer um destes for verdade:**
 - Nenhum argumento passado (`/build` sem nada)
@@ -271,6 +286,10 @@ Antes de gerar qualquer planejamento, extrai estruturadamente do RESEARCH.md:
 → Abordagens técnicas encontradas no RESEARCH.md informam a sequência de implementação
 → Pitfalls identificados = items de atenção no plano
 
+**Entidades de domínio identificadas:**
+→ Se o plano introduz entidades novas (tabelas, models) → chamar `/db design` antes de iniciar a Fase 3
+→ `/db` retorna o schema aprovado que alimenta a implementação
+
 Este mapeamento explícito garante que o planejamento seja embasado nos achados reais da pesquisa,
 não em decisões genéricas do modelo.
 
@@ -374,34 +393,19 @@ rtk cat package.json | grep -E '"expo"|"react-native"'
 
 ### Foundation Protocol Mobile (OBRIGATÓRIO para projetos React Native)
 
-Executar em sequência estrita. Usar `/mobile` como referência completa.
-
-#### [M-3a] Design System + Navigation Base
-
-1. Instalar NativeWind v4 + configurar tema (cores, fontes, dark/light mode)
-2. Criar componentes base: `Button`, `Input`, `Screen`, `Typography`, `Card`
-3. Configurar `RootNavigator` + `AuthNavigator` + `AppNavigator`
-4. Verificar renderização em iOS Simulator + Android Emulator
+Delegar integralmente para `/mobile` — não reimplementar aqui.
 
 ```
-⛔ GATE [M-3a]: /mobile qa
-  □ Componentes sem erro em iOS e Android
-  □ Dark mode funciona
-  □ Navegação entre telas funciona
-  PASS obrigatório — sem este gate, nenhuma feature inicia
+▶ Executando Foundation Protocol Mobile via /mobile...
+
+Fases obrigatórias:
+  [M-3a] /mobile scaffold → design system + navigation base → GATE (/mobile qa)
+  [M-3b] /auth scaffold   → register/login/logout/refresh → GATE (/mobile qa escopo: auth)
+
+Se GATE [M-3b] falhar → TODO o build para aqui. Sem exceções.
 ```
 
-#### [M-3b] Auth — Register / Login / Logout
-
-1. Implementar fluxo completo: register, login, logout, refresh token, proteção de rotas
-2. Criar `tests/e2e/auth.e2e.ts` com happy path + caso de erro
-3. `rtk npx detox test tests/e2e/auth.e2e.ts`
-
-```
-⛔ GATE [M-3b]: /mobile qa (escopo: auth)
-  Se auth falha → TODO o build para aqui
-  Sem exceções.
-```
+Consulte a skill `/mobile` para o protocolo completo de cada fase.
 
 ---
 

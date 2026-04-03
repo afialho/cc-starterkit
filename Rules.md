@@ -154,7 +154,7 @@
 
 ## Git Workflow Rules
 
-### RULE-GIT-001 [AUTO]
+### RULE-GIT-001
 **Use worktrees for every parallel feature.**
 ```bash
 rtk git worktree add ../[project]-[feature] -b feature/[feature-name]
@@ -163,6 +163,7 @@ rtk git worktree add ../[project]-[feature] -b feature/[feature-name]
 - Never develop two unrelated features in the same working tree
 - List active worktrees: `rtk git worktree list`
 - Remove when merged: `rtk git worktree remove ../[project]-[feature]`
+- *Reminder: session-start hook injects worktree command as context. Not hard-enforced (no exit code).*
 
 ### RULE-GIT-002 [AUTO]
 **All commits must follow Conventional Commits format.**

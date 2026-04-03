@@ -7,19 +7,16 @@
 
 ## Project Scale
 
-Declare o scale no início de cada projeto. Determina quais skills e infra são ativados.
+O scale é capturado pelo `/ideate` (pergunta obrigatória) ou passado diretamente como argumento: `/build scale=MVP`.
 
 | Scale | Quando usar | O que inclui |
 |-------|------------|--------------|
-| **MVP** | POC, validação de ideia, hackathon, protótipo | Auth, core feature, Docker dev, testes unitários básicos. Sem CI/CD, sem observabilidade, sem rate limit. |
-| **Product** | App indo a mercado, early stage | MVP + CI/CD (GitHub Actions), rate limiting em auth, structured logging (pino), testes E2E |
-| **Scale** | Produto com tração, time crescendo | Product + observabilidade completa (OpenTelemetry → Grafana), feature flags, multi-tenancy se necessário, load tests |
+| **MVP** | POC, validação de ideia, hackathon, protótipo | Auth, core feature, Docker dev, testes unitários básicos |
+| **Product** | App indo a mercado, early stage | MVP + CI/CD (GitHub Actions), rate limiting, structured logging, testes E2E |
+| **Scale** | Produto com tração, time crescendo | Product + OpenTelemetry → Grafana, feature flags, multi-tenancy, load tests |
 
-**Como usar:** ao iniciar `/ideate` ou `/build`, informar o scale. Ex: `/build scale=MVP`.
-Se não informado → `/ideate` pergunta antes de avançar.
-
-**Regras que se aplicam em TODOS os scales:** TDD, BDD, hexagonal, auth gate, security-scan.
-**Regras que se aplicam só em Product/Scale:** CI/CD, observabilidade, rate limiting, load tests.
+**Regras em TODOS os scales:** TDD, BDD, auth gate, security-scan, hexagonal (ou pattern do projeto).
+**Só em Product/Scale:** CI/CD, observabilidade, rate limiting, load tests.
 
 ---
 
@@ -105,31 +102,53 @@ Before each phase/step: `▶ [N/Total] Phase Name`
 
 ## Skills
 
+### Início de projeto
 | Skill | Purpose |
 |-------|---------|
-| `/ideate` | Collaborative idea refinement: interview → feature map → MVP scope → IDEAS.md → handoff to /build |
-| `/research` | Parallel research wave → RESEARCH.md (UX, libs, YouTube, docs) |
-| `/build` | Full pipeline: research → clarify → plan → implement |
-| `/plan` | Development plan with arch mapping, BDD, test plan |
-| `/auth` | Auth completa: JWT + refresh rotation, OAuth2/social, RBAC, reset, audit. Stack-aware (Next.js/Node/RN/Django/Rails) |
-| `/feature-dev` | TDD + hexagonal implementation, 7 phases |
-| `/ui` | Full UI pipeline: research → TDD → geração via plugin oficial → enforce → browser-qa gate |
-| `/frontend-design` | Plugin oficial — geração base de UI. Chamado internamente pelo `/ui` na Fase 5 |
-| `/browser-qa` | Exhaustive browser QA: crawl all UI, detect + classify + fix all errors |
-| `/code-review` | Architecture + quality + TDD + security review (extends `code-review@claude-plugins-official`) |
-| `/simplify` | Refactor for reuse, quality, efficiency (extends `code-simplifier@claude-plugins-official`) |
-| `/tdd` | Red → Green → Refactor guidance |
-| `/hexagonal` | Hexagonal architecture reference |
-| `/agent-teams` | Multi-team parallel orchestration |
+| `/ideate` | Entrevista colaborativa → feature map → MVP scope → IDEAS.md → handoff para /build |
+| `/scaffold` | Inicializa projeto do zero: estrutura, Docker, testing, Git, GitHub. Chamado automaticamente pelo /build se projeto vazio |
+| `/build` | Orquestrador completo: research → planning (gera PLAN.md) → implement. Entry point para tudo |
+| `/adapt` | Auto-configure o kit para um projeto existente (rodar uma vez após adopt.sh) |
+
+### Desenvolvimento de features
+| Skill | Purpose |
+|-------|---------|
+| `/feature-dev` | Implementação TDD + arquitetura, 7 fases |
+| `/auth` | Auth completa: JWT + refresh, OAuth2/social, RBAC, reset, audit. Stack-aware |
+| `/ui` | Full UI pipeline: research → TDD → frontend-design → a11y → browser-qa gate |
+| `/frontend-design` | Plugin oficial de geração de UI — chamado internamente pelo `/ui` |
+| `/mobile` | React Native + Expo: scaffold, TDD (RNTL), Detox E2E, EAS Build |
+| `/db` | Schema design, modelagem, índices, multi-tenancy, seed data |
+| `/data-migration` | Migrations zero-downtime, CQRS, event sourcing, state machines |
+
+### Qualidade e revisão
+| Skill | Purpose |
+|-------|---------|
 | `/qa-loop` | QA agentic: design, UX, backend, security, E2E + fix loop automático |
-| `/resume` | Resume from checkpoint after context reset |
-| `/adapt` | Auto-configure the kit for an existing project (run once after adopt.sh) |
-| `/deploy` | Deployment pipeline: infra-as-code, docker prod, secrets, post-deploy validation |
-| `/ci-cd` | CI/CD pipeline generation: GitHub Actions, GitLab CI, quality gates, security scans |
-| `/security-hardening` | Proactive security: OWASP Top 10, security headers, secrets audit, dependency scanning |
-| `/perf-audit` | Performance audit: bundle analysis, N+1 detection, caching strategy, Core Web Vitals |
-| `/docs-gen` | Living docs: OpenAPI, C4 diagrams (Mermaid), CHANGELOG, developer runbook |
+| `/browser-qa` | Browser QA exaustivo: crawl de toda a UI + fix loop até 0 falhas |
+| `/code-review` | Revisão de arquitetura + TDD + segurança |
+| `/simplify` | Refactor para reuso, qualidade e eficiência |
+| `/perf-audit` | Bundle analysis, N+1 detection, caching, Core Web Vitals |
+| `/security-hardening` | OWASP Top 10, headers, secrets audit, dependency scanning |
+
+### Infra e operações
+| Skill | Purpose |
+|-------|---------|
+| `/deploy` | Pipeline de deploy: infra-as-code, Docker prod, secrets, post-deploy validation |
+| `/ci-cd` | CI/CD: GitHub Actions, GitLab CI, quality gates, security scans |
+| `/observability` | Structured logging + OpenTelemetry → Grafana (Prometheus + Loki + Tempo) |
+
+### Documentação e planejamento
+| Skill | Purpose |
+|-------|---------|
+| `/research` | Parallel research wave → RESEARCH.md (mercado, libs, arquitetura, docs) |
+| `/docs-gen` | OpenAPI, C4 diagrams (Mermaid), CHANGELOG, developer runbook |
 | `/adr` | Architecture Decision Records: template, lifecycle, ADR index |
-| `/mobile` | React Native + Expo mobile-first: scaffold, TDD com RNTL, Detox E2E, EAS Build |
-| `/data-migration` | Database migrations, zero-downtime patterns, event sourcing/CQRS, state machines |
-| `/observability` | Structured logging + OpenTelemetry → Grafana stack (Prometheus + Loki + Tempo) |
+| `/agent-teams` | Orquestração multi-time em paralelo |
+| `/resume` | Retoma trabalho a partir do checkpoint após reset de contexto |
+
+### Referência (consultar, não executar como workflow)
+| Skill | Purpose |
+|-------|---------|
+| `/tdd` | Referência Red → Green → Refactor com exemplos |
+| `/hexagonal` | Referência de arquitetura hexagonal: camadas, regras, exemplos |
