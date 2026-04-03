@@ -13,7 +13,7 @@ O scale é capturado pelo `/ideate` (pergunta obrigatória) ou passado diretamen
 |-------|------------|--------------|
 | **MVP** | POC, validação de ideia, hackathon, protótipo | Auth, core feature, Docker dev, testes unitários básicos |
 | **Product** | App indo a mercado, early stage | MVP + CI/CD (GitHub Actions), rate limiting, structured logging, testes E2E |
-| **Scale** | Produto com tração, time crescendo | Product + OpenTelemetry → Grafana, feature flags, multi-tenancy, load tests |
+| **Scale** | Produto com tração, time crescendo | Product + OpenTelemetry → Grafana, multi-tenancy, load tests (k6) |
 
 **Regras em TODOS os scales:** TDD, BDD, auth gate, security-scan, hexagonal (ou pattern do projeto).
 **Só em Product/Scale:** CI/CD, observabilidade, rate limiting, load tests.

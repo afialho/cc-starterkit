@@ -167,7 +167,7 @@ Recebe a ideia concreta (ou IDEAS.md do /ideate) e:
    MVP:     Auth + features core + testes unitários básicos
             SEM: CI/CD, observabilidade, rate limiting, load tests
    Product: MVP + CI/CD (GitHub Actions) + rate limiting em auth + E2E + structured logging
-   Scale:   Product + observabilidade completa + feature flags + load tests
+   Scale:   Product + observabilidade completa + multi-tenancy + load tests (k6 por endpoint)
    ```
 
 2. Reformula em linguagem técnica clara:
@@ -516,6 +516,7 @@ PHASE GATE — executar após cada feature:
       UI only      → qa-design + qa-ux + qa-e2e
       Backend only → qa-backend + qa-security + qa-code
       Full-stack   → qa-design + qa-ux + qa-backend + qa-security + qa-e2e
+  □ [Scale only] Se feature tem endpoint HTTP → adicionar qa-perf + rtk k6 run tests/load/[feature].js
   □ PASS obrigatório antes de iniciar a próxima feature
   □ Fix loop automático (máx 3 iterações) antes de escalar para usuário
 ```

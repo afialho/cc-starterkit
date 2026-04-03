@@ -43,11 +43,11 @@
 
 ## Testing Rules
 
-### RULE-TEST-001 [AUTO]
+### RULE-TEST-001 [ADVISORY]
 **Write tests before implementation (TDD).**
 - The RED phase (failing test) must precede the GREEN phase (implementation)
 - Commit history should show test commits before implementation commits
-- *Enforcement: tdd-guard hook adds context reminder when writing implementation files*
+- *Enforcement: tdd-guard hook adds context reminder when writing implementation files (advisory — does not hard-block)*
 
 ### RULE-TEST-002
 **Every feature has BDD scenarios written before implementation starts.**
