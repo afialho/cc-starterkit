@@ -78,12 +78,16 @@ chmod +x scripts/setup.sh && ./scripts/setup.sh
 claude
 ```
 
-**For existing codebases:**
+**For existing codebases** (one-liner, run from your project root):
 
 ```bash
-# Copy the kit into your project
-cp -r cc-starterkit/.claude cc-starterkit/CLAUDE.md cc-starterkit/Rules.md cc-starterkit/docs your-project/
-cd your-project && claude
+bash <(curl -s "https://raw.githubusercontent.com/afialho/cc-starterkit/main/scripts/adopt.sh?t=$(date +%s)")
+```
+
+This installs skills, hooks, and config into your project without touching your code. Then:
+
+```bash
+claude
 /adapt              # auto-detects your stack and configures everything
 /build new feature  # or /refactor, /redesign, /modernize
 ```

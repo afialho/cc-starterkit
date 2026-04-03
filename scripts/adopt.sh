@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# adopt.sh — Adopt ai-dev-starter-kit into an existing project
+# adopt.sh — Adopt cc-starterkit into an existing project
 #
 # Usage (one-liner, no clone needed):
-#   bash <(curl -s "https://raw.githubusercontent.com/afialho/ai-dev-starter-kit/main/scripts/adopt.sh?t=$(date +%s)")
+#   bash <(curl -s "https://raw.githubusercontent.com/afialho/cc-starterkit/main/scripts/adopt.sh?t=$(date +%s)")
 #
 # Or if the kit is cloned locally:
-#   bash /path/to/ai-dev-starter-kit/scripts/adopt.sh
+#   bash /path/to/cc-starterkit/scripts/adopt.sh
 
 set -euo pipefail
 
