@@ -457,10 +457,10 @@ Itens pulados (arquivo não encontrado):
   [listar itens que foram pulados e o motivo]
 
 Skills disponíveis para este projeto:
+  /build       → entry point: research → planning (PLAN.md) → implement
   /research    → pesquisa antes de qualquer feature
-  /build       → pipeline completo (research → plan → implement)
-  /plan        → planejamento detalhado com wave decomposition
   /feature-dev → implementação TDD + arquitetura detectada
+  /dba         → schema design, índices, multi-tenancy (antes de implementar entidades novas)
   /adapt       → rode novamente se a stack mudar
 
 ⚠ Verifique manualmente:

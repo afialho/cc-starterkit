@@ -87,8 +87,12 @@
 
 ## Code Quality Rules
 
+> SOLID completo (RULE-CODE-001 a 008) + Clean Code (RULE-CODE-002, 003, 004, 009).
+> Enforcement: `qa-code` agent no `/qa-loop` verifica todos estes após cada feature.
+> Enforcement proativo: Rules.md é auto-carregado via @import em CLAUDE.md.
+
 ### RULE-CODE-001
-**Single Responsibility Principle.**
+**Single Responsibility Principle (S em SOLID).**
 - Each class: one reason to change
 - Each function: one responsibility
 - Functions < 20 lines (prefer < 10)
@@ -115,12 +119,40 @@
 - No TODO comments older than one sprint (convert to tracked issues)
 
 ### RULE-CODE-005
-**Dependency Inversion.**
+**Open/Closed Principle.**
+- Classes/functions open for extension, closed for modification
+- Add behavior via new classes or composition — don't modify existing stable code
+- Use polymorphism, strategy pattern, or dependency injection to extend behavior
+- If you find yourself adding `if type == X` to existing code, consider a new subtype instead
+
+### RULE-CODE-006
+**Liskov Substitution Principle.**
+- Subtypes must be substitutable for their base types without altering correctness
+- Overriding methods must honor the contract of the parent (preconditions no stricter, postconditions no weaker)
+- Never throw exceptions in overrides where the parent doesn't
+- If a subclass can't fulfill the parent's contract, it's inheritance misuse — prefer composition
+
+### RULE-CODE-007
+**Interface Segregation Principle.**
+- Clients should not depend on methods they don't use
+- Prefer many small, focused interfaces over one fat interface
+- If an implementor leaves methods empty or throws `NotImplemented`, the interface is too broad — split it
+- Each port interface should represent exactly one capability
+
+### RULE-CODE-008
+**Dependency Inversion Principle.**
 - Depend on interfaces/abstract types, never on concrete implementations
 - Constructor injection preferred over property or method injection
 - No `new ConcreteClass()` inside business logic
 
-### RULE-CODE-006
+### RULE-CODE-009
+**DRY — Don't Repeat Yourself.**
+- Every piece of knowledge must have a single, authoritative representation
+- If you write the same logic twice, extract it — but only after the second occurrence (Rule of Three)
+- DRY applies to logic, not necessarily to structure (two similar-looking functions with different semantics are NOT duplication)
+- Prefer extraction to a shared module over copy-paste with minor variations
+
+### RULE-CODE-010
 **No defensive programming inside domain.**
 - Domain assumes valid input (validate at application layer boundaries)
 - Application layer validates all inputs before calling domain
