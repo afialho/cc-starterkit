@@ -192,6 +192,20 @@ try {
   fail('Claude Code CLI not found.\n    Install: npm i -g @anthropic-ai/claude-code');
 }
 
+// --- Ensure vercel agent-browser MCP ---
+try {
+  var mcpList = execSync('claude mcp list', { cwd: target, stdio: 'pipe', timeout: 10000 }).toString();
+  if (!mcpList.includes('vercel')) {
+    execSync('claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest', { cwd: target, stdio: 'pipe', timeout: 30000 });
+    ok('Installed vercel agent-browser MCP');
+  } else {
+    ok('vercel agent-browser MCP available');
+  }
+} catch {
+  warn('Could not verify vercel agent-browser MCP — install manually:');
+  console.log('  claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest');
+}
+
 // --- Launch claude ---
 var claudeArgs = mode === 'init' ? [] : ['/adapt'];
 

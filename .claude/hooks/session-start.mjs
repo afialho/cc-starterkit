@@ -13,6 +13,7 @@
  */
 
 import { existsSync, readFileSync } from 'fs';
+import { execSync } from 'child_process';
 
 async function readStdin() {
   const chunks = [];
@@ -134,6 +135,22 @@ async function main() {
     ].join('\n');
   }
 
+  // Check vercel agent-browser MCP availability
+  let agentBrowserStatus = '';
+  try {
+    const mcpList = execSync('claude mcp list', { stdio: 'pipe', timeout: 5000 }).toString();
+    if (!mcpList.includes('vercel')) {
+      // Try to install automatically
+      try {
+        execSync('claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest', { stdio: 'pipe', timeout: 30000 });
+        agentBrowserStatus = '🔧 vercel agent-browser MCP: auto-installed';
+      } catch {
+        agentBrowserStatus = '⛔ vercel agent-browser MCP: NOT AVAILABLE — /browser-qa will not work.\n'
+          + '  Install manually: claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest';
+      }
+    }
+  } catch { /* claude mcp list failed — skip check */ }
+
   const lines = [
     `# Session Start — ${projectName}`,
     ``,
@@ -146,6 +163,12 @@ async function main() {
     `## Architecture Pattern`,
     `${archPattern} — ${archRule}`,
   ];
+
+  if (agentBrowserStatus) {
+    lines.push('');
+    lines.push('## Agent Browser');
+    lines.push(agentBrowserStatus);
+  }
 
   const output = {
     ...input,
