@@ -206,10 +206,12 @@ try {
   console.log('  claude mcp add vercel -- npx -y @vercel/mcp-adapter@latest');
 }
 
-// --- Launch claude ---
-var claudeArgs = mode === 'init' ? [] : ['/adapt'];
+// --- Launch claude (YOLO mode — auto-accept all permissions) ---
+var claudeArgs = ['--dangerously-skip-permissions'];
+if (mode !== 'init') claudeArgs.push('/adapt');
 
-console.log('Launching Claude Code' + (claudeArgs.length ? ' → ' + claudeArgs[0] : '') + '...');
+var skill = mode !== 'init' ? ' → /adapt' : '';
+console.log('Launching Claude Code (YOLO mode)' + skill + '...');
 if (mode === 'init') console.log('  Type ' + B + '/build <your idea>' + N + ' to start');
 console.log('');
 
@@ -218,7 +220,7 @@ child.on('close', function(code) { process.exit(code ?? 0); });
 child.on('error', function() {
   warn('Could not launch Claude Code');
   console.log('  cd ' + target);
-  console.log('  claude');
-  if (claudeArgs.length) console.log('  ' + claudeArgs[0]);
+  console.log('  claude --dangerously-skip-permissions');
+  if (mode !== 'init') console.log('  /adapt');
   process.exit(1);
 });
