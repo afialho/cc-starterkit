@@ -2,6 +2,21 @@
 
 AI development harness for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Build any software from zero to production with one command.
 
+## Install
+
+```bash
+npx @afialho/cc-harness my-app       # new project
+npx @afialho/cc-harness              # existing project or update
+```
+
+One command. Auto-detects mode:
+
+| State | Mode | What happens |
+|-------|------|-------------|
+| Project name or empty dir | **init** | Copies harness, git init, launches Claude |
+| Existing project, no harness | **adopt** | Installs harness, launches Claude → `/adapt` |
+| Harness already installed | **update** | Refreshes to latest, launches Claude → `/adapt` |
+
 ## How It Works
 
 ```
@@ -10,34 +25,13 @@ AI development harness for [Claude Code](https://docs.anthropic.com/en/docs/clau
 
 This triggers a fully autonomous pipeline:
 
-1. **Research** — parallel agents search the web for patterns, APIs, references
-2. **Plan** — BDD scenarios, architecture mapping, test plan (waits for your approval)
-3. **Implement** — TDD, foundation first, auth gate, feature-by-feature with QA gates
-4. **Launch** — Docker up, browser audit of ALL screens, fix loop until zero issues
+1. **Research** — parallel agents search the web for patterns, APIs, references. Product Discovery audits reference products for feature mapping.
+2. **Plan** — BDD scenarios, architecture mapping, test plan, Tech Lead decomposition (waits for your approval)
+3. **Implement** — TDD, foundation first, auth gate, feature-by-feature with QA gates and incremental commits
+4. **Launch** — Docker up, browser audit of ALL screens, PM Validation (zero stubs), fix loop until zero issues
 5. **Deliver** — app running at `http://localhost:3000`, ready for manual testing
 
-Works for hackathons (`scale=MVP`), launches (`scale=Product`), or production systems (`scale=Scale`).
-
-## Install
-
-One command. Auto-detects new project, existing codebase, or update.
-
-```bash
-npx @afialho/cc-harness my-app    # new project → creates dir, launches claude
-npx @afialho/cc-harness           # existing project → adopts or updates, launches claude
-```
-
-| Detected state | Mode | What happens |
-|---------------|------|-------------|
-| Project name given or empty dir | **init** | Copies harness, git init, launches Claude |
-| Existing project, no harness | **adopt** | Installs harness, launches Claude → `/adapt` |
-| Harness already installed | **update** | Refreshes harness, launches Claude → `/adapt` |
-
-## Requirements
-
-Node.js 18+, Git 2.5+, Docker, [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code).
-
-`scripts/setup.sh` checks and installs dependencies automatically.
+Two operation modes: **autonomous** (default — AI as PM, deep research defines feature set) or **guided** (detailed interview, you define features). Three scales: `MVP`, `Product`, `Scale`.
 
 ## Skills
 
@@ -53,6 +47,10 @@ Node.js 18+, Git 2.5+, Docker, [Claude Code CLI](https://docs.anthropic.com/en/d
 | **Docs** | `/research` `/docs-gen` `/adr` `/agent-teams` `/resume` |
 
 Full catalog: [docs/SKILLS.md](docs/SKILLS.md)
+
+## Requirements
+
+Node.js 18+, Git 2.5+, Docker, [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code).
 
 ## License
 
