@@ -29,6 +29,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/qa-gate.mjs"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/rules-engine.mjs"
           }
         ]
