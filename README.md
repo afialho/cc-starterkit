@@ -20,20 +20,18 @@ Works for hackathons (`scale=MVP`), launches (`scale=Product`), or production sy
 
 ## Install
 
-**New project:**
+One command. Auto-detects new project, existing codebase, or update.
 
 ```bash
-bash <(curl -s "https://raw.githubusercontent.com/afialho/cc-harness/main/scripts/new-project.sh?t=$(date +%s)") my-app
-cd my-app && claude
+npx cc-harness my-app       # new project → creates dir, launches claude
+npx cc-harness              # existing project → adopts or updates, launches claude
 ```
 
-**Existing codebase** (run from your project root):
-
-```bash
-bash <(curl -s "https://raw.githubusercontent.com/afialho/cc-harness/main/scripts/adopt.sh?t=$(date +%s)")
-claude
-/adapt
-```
+| Detected state | Mode | What happens |
+|---------------|------|-------------|
+| Project name given or empty dir | **init** | Copies harness, git init, launches Claude |
+| Existing project, no harness | **adopt** | Installs harness, launches Claude → `/adapt` |
+| Harness already installed | **update** | Refreshes harness, launches Claude → `/adapt` |
 
 ## Requirements
 
