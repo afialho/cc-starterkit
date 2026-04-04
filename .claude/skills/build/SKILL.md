@@ -46,12 +46,13 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
     │         └─ ⏸ PAUSA: apresenta plano → aguarda aprovação
     │
     └─ [3/3] Fase 3 — Implementation
-              ├─ [3a] Foundation (design system + layout) → agent-browser → GATE
-              ├─ [3b] Auth (register/login/logout) → agent-browser → GATE obrigatório
-              ├─ Feature simples → /feature-dev + phase gate por feature
-              ├─ Feature complexa (3+ componentes) → /agent-teams + phase gate por wave
+              ├─ git checkout -b feature/[nome]
+              ├─ [3a] Foundation (design system + layout) → GATE → COMMIT
+              ├─ [3b] Auth (register/login/logout) → GATE → COMMIT
+              ├─ Feature simples → /feature-dev + phase gate → COMMIT por feature
+              ├─ Feature complexa (3+ componentes) → /agent-teams + phase gate → COMMIT por wave
               │
-              ├─ [CONCLUSÃO] Launch + Browser Audit + Commit
+              ├─ [CONCLUSÃO] Launch + Browser Audit
               │   ├─ Test suite completa (unit + BDD + Cypress + k6)
               │   ├─ docker compose up -d → health check → URL local
               │   ├─ /browser-qa <url> → navega TODAS as telas, testa TODOS os elementos
@@ -59,7 +60,7 @@ Cada fase tem budget próprio de contexto e checkpoints automáticos.
               │   ├─ /qa-loop (qa-code + qa-security + qa-backend + qa-perf)
               │   ├─ Code review → PASS
               │   ├─ Scale gates (se Product/Scale)
-              │   ├─ Commit
+              │   ├─ Commit final (apenas fixes restantes)
               │   └─ BUILD COMPLETE — app rodando em http://localhost:[porta]
               │
               └─ Docker NÃO é derrubado — app permanece acessível
@@ -434,6 +435,18 @@ Escreve checkpoint com plano parcial e emite:
 
 ---
 
+### Git Setup — Branch de feature (OBRIGATÓRIO)
+
+Antes de qualquer implementação, criar branch dedicada:
+
+```bash
+rtk git checkout -b feature/[nome-kebab-case]
+```
+
+**Todo o trabalho da Fase 3 acontece nesta branch.** Commits incrementais ao longo da implementação (ver regras de commit abaixo). Merge em `main` somente após BUILD COMPLETE.
+
+---
+
 ### Detecção automática: Web vs. Mobile
 
 Antes do Foundation Protocol, detectar o tipo de projeto:
@@ -550,6 +563,12 @@ A aplicação deve estar acessível antes dos gates visuais. Determinar URL (`ht
              Fix loop automático até PASS ou escalate para usuário
 ```
 
+**Commit após [3a] PASS:**
+```bash
+rtk git add [arquivos específicos — nunca git add .]
+rtk git commit -m "chore(scaffold): add design system and base layout"
+```
+
 #### [3b] Auth — Register / Login / Logout
 
 1. Implementar fluxo completo: register, login, logout, redirect pós-login, proteção de rotas
@@ -582,6 +601,12 @@ Aguardando confirmação para retomar.
 
 Aguardar resposta explícita do usuário antes de continuar qualquer implementação.
 
+**Commit após [3b] PASS:**
+```bash
+rtk git add [arquivos específicos — nunca git add .]
+rtk git commit -m "feat(auth): add register, login, logout with route protection"
+```
+
 ---
 
 ### Phase Gate Protocol
@@ -600,6 +625,9 @@ PHASE GATE — executar após cada feature:
   □ [Scale only] Se feature tem endpoint HTTP → adicionar qa-perf + rtk k6 run tests/load/[feature].js
   □ PASS obrigatório antes de iniciar a próxima feature
   □ Fix loop automático (máx 3 iterações) antes de escalar para usuário
+  □ COMMIT após PASS:
+      rtk git add [arquivos específicos — nunca git add .]
+      rtk git commit -m "feat([feature-scope]): [descrição da feature]"
 ```
 
 **Mobile:**
@@ -779,13 +807,14 @@ Se qualquer skill retornar BLOCKER → fix loop antes do commit.
 
 **Se scale = MVP:** nenhum skill adicional — prosseguir direto para o commit.
 
-4. **Commit:**
+4. **Commit final** (apenas alterações dos scale gates, review fixes e browser audit fixes — features já foram commitadas incrementalmente):
    ```bash
    rtk git add [arquivos específicos — nunca git add .]
-   rtk git commit -m "feat([scope]): [descrição]
+   rtk git commit -m "chore(build): add scale gates, review fixes, and final QA adjustments
 
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
+   Se não houver alterações pendentes (tudo já commitado nos phase gates) → pular este commit.
 
 5. **Verificar que Docker continua rodando:**
    ```bash
@@ -800,6 +829,7 @@ BUILD COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Feature:        [nome da feature]
 Branch:         feature/[nome]
+Commits:        [N] (incremental — foundation, auth, per-feature, final)
 URL:            http://localhost:[porta]
 Docker:         running (docker compose up)
 
@@ -830,7 +860,7 @@ Review:       PASS
 A aplicação está rodando em http://localhost:[porta].
 Docker NÃO foi derrubado — a app permanece acessível para testes manuais.
 
-Próximo: merge feature/[nome] em main quando pronto.
+Próximo: rtk git checkout main && rtk git merge feature/[nome]
 ```
 
 ---
@@ -844,9 +874,11 @@ Próximo: merge feature/[nome] em main quando pronto.
 5. **Autonomia máxima dentro de cada fase** — decisões de arquitetura, naming, padrões e dependências são feitas pelos agentes sem perguntar ao usuário.
 6. **Decisões documentadas** — toda escolha não-óbvia é registrada no handoff do agente que a tomou.
 7. **TDD não é negociável** — teste failing antes de qualquer implementação, sem exceções.
-8. **Docker sempre rodando antes de QA visual** — toda wave visual (qa-design, qa-ux, qa-a11y, qa-e2e) e todo `/browser-qa` requerem `docker compose up`. Verificar com `docker compose ps` antes de lançar agentes visuais.
-9. **App entregue rodando** — o build SEMPRE termina com a aplicação acessível via Docker em `http://localhost:[porta]`. Docker NÃO é derrubado após o build. O BUILD COMPLETE inclui a URL.
-10. **Browser Audit é obrigatório** — ao final do build, `/browser-qa` roda com navegação exaustiva (todas as telas, todos os componentes). Não é opcional. Fix loop até zero BLOCKER/MAJOR.
+8. **Commits incrementais** — commitar após cada milestone: foundation [3a], auth [3b], cada feature (phase gate PASS), e final (scale gates/review). Nunca acumular todo o trabalho em um unico commit no final. Cada commit deve ser atomico e funcional (testes passando).
+9. **Branch obrigatória** — toda implementação acontece em `feature/[nome]`, nunca em `main`. Merge em `main` somente após BUILD COMPLETE.
+10. **Docker sempre rodando antes de QA visual** — toda wave visual (qa-design, qa-ux, qa-a11y, qa-e2e) e todo `/browser-qa` requerem `docker compose up`. Verificar com `docker compose ps` antes de lançar agentes visuais.
+11. **App entregue rodando** — o build SEMPRE termina com a aplicação acessível via Docker em `http://localhost:[porta]`. Docker NÃO é derrubado após o build. O BUILD COMPLETE inclui a URL.
+12. **Browser Audit é obrigatório** — ao final do build, `/browser-qa` roda com navegação exaustiva (todas as telas, todos os componentes). Não é opcional. Fix loop até zero BLOCKER/MAJOR.
 
 ---
 
