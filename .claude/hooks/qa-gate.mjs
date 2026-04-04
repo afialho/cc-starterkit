@@ -301,6 +301,27 @@ function checkBrowserQaReport() {
   return { pass: true };
 }
 
+// ── Retry counter (persists between hook invocations) ─────────────────────────
+
+var RETRY_FILE = '.claude/qa-gate-attempts.json';
+var MAX_ATTEMPTS = 3;
+
+function getAttempts() {
+  if (!existsSync(RETRY_FILE)) return { count: 0, issues: [] };
+  try { return JSON.parse(readFileSync(RETRY_FILE, 'utf8')); } catch { return { count: 0, issues: [] }; }
+}
+
+function saveAttempts(data) {
+  mkdirSync('.claude', { recursive: true });
+  writeFileSync(RETRY_FILE, JSON.stringify(data, null, 2));
+}
+
+function resetAttempts() {
+  if (existsSync(RETRY_FILE)) {
+    try { writeFileSync(RETRY_FILE, JSON.stringify({ count: 0, issues: [] })); } catch { /* ok */ }
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -353,12 +374,43 @@ async function main() {
   var isFinal = command.includes('chore(build)');
 
   if (isFinal) {
+    var attempts = getAttempts();
+
+    // ── Max attempts reached → escalate to user ──────────────────────────────
+    if (attempts.count >= MAX_ATTEMPTS) {
+      var history = attempts.issues.map(function(a) {
+        return '  Attempt ' + a.attempt + ': BLOCKER(' + a.blockers + ') MAJOR(' + a.majors + ') MINOR(' + a.minors + ')';
+      }).join('\n');
+
+      process.stderr.write([
+        '',
+        '⛔ QA-GATE [ESCALATE] — 3 attempts exhausted. Human review required.',
+        '',
+        'Attempt history:',
+        history,
+        '',
+        'Persistent issues: .claude/browser-qa-report.md',
+        '',
+        'Possible causes:',
+        '  - Structural problem requiring component/API redesign',
+        '  - Race condition or complex state management',
+        '  - External service dependency not available in dev',
+        '  - Ambiguous requirement needing human decision',
+        '',
+        'Action: review the report, fix manually, then reset with:',
+        '  rm .claude/qa-gate-attempts.json',
+        '',
+      ].join('\n'));
+      process.exit(2);
+    }
+
     // ── Gate 2: agent-browser crawl (deterministic) ──────────────────────────
     if (agentBrowserInstalled()) {
       var port = detectAppPort();
       var baseUrl = 'http://localhost:' + port;
+      var attemptNum = attempts.count + 1;
 
-      process.stderr.write('\n[qa-gate] Running agent-browser crawl on ' + baseUrl + '...\n');
+      process.stderr.write('\n[qa-gate] Running agent-browser crawl on ' + baseUrl + ' (attempt ' + attemptNum + '/' + MAX_ATTEMPTS + ')...\n');
 
       var crawlResult = runAgentBrowserCrawl(baseUrl);
 
@@ -374,14 +426,21 @@ async function main() {
         var majorCount = crawlResult.issues.filter(function(i) { return i.severity === 'MAJOR'; }).length;
         var minorCount = crawlResult.issues.filter(function(i) { return i.severity === 'MINOR'; }).length;
 
+        // Track attempt
+        attempts.count = attemptNum;
+        attempts.issues.push({ attempt: attemptNum, blockers: blockerCount, majors: majorCount, minors: minorCount });
+        saveAttempts(attempts);
+
+        var remaining = MAX_ATTEMPTS - attemptNum;
+
         process.stderr.write([
           '',
-          '⛔ QA-GATE [BLOCKED] — agent-browser found issues. Commit rejected.',
+          '⛔ QA-GATE [BLOCKED] — agent-browser found issues (attempt ' + attemptNum + '/' + MAX_ATTEMPTS + '). Commit rejected.',
           '',
           '  BLOCKER: ' + blockerCount + ' | MAJOR: ' + majorCount + ' | MINOR: ' + minorCount,
+          remaining > 0 ? '  Remaining attempts: ' + remaining : '  ⚠️  LAST ATTEMPT USED — next commit will escalate to human review.',
           '',
           '  Report: .claude/browser-qa-report.md',
-          '',
           '  Fix all issues and retry the commit.',
           '',
         ].join('\n'));
@@ -405,6 +464,9 @@ async function main() {
       ].join('\n'));
       process.exit(2);
     }
+
+    // All gates passed — reset counter for next feature
+    resetAttempts();
   }
 
   // All gates passed
