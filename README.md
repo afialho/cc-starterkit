@@ -23,8 +23,8 @@ Works for hackathons (`scale=MVP`), launches (`scale=Product`), or production sy
 One command. Auto-detects new project, existing codebase, or update.
 
 ```bash
-npx cc-harness my-app       # new project → creates dir, launches claude
-npx cc-harness              # existing project → adopts or updates, launches claude
+npx @afialho/cc-harness my-app    # new project → creates dir, launches claude
+npx @afialho/cc-harness           # existing project → adopts or updates, launches claude
 ```
 
 | Detected state | Mode | What happens |

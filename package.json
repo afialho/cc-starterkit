@@ -1,5 +1,5 @@
 {
-  "name": "cc-harness",
+  "name": "@afialho/cc-harness",
   "version": "1.0.0",
   "description": "AI development harness for Claude Code — build any software from zero to production with one command",
   "type": "module",
