@@ -25,7 +25,7 @@ Each phase has its own context budget and automatic checkpoints.
     │         ├─ Empty project? → /scaffold → continue
     │         ├─ Transformation detected? → /redesign | /refactor | /modernize (full handoff)
     │         ├─ Vague idea? → /ideate → wait for IDEAS.md → resume automatically
-    │         └─ ⏸ PAUSE: confirm understanding
+    │         └─ autonomous: proceed immediately | guided: ⏸ PAUSE: confirm understanding
     │
     ├─ [1/3] Phase 1 — Research
     │         ├─ Parallel agent wave:
@@ -37,13 +37,13 @@ Each phase has its own context budget and automatic checkpoints.
     │         │   └─ YouTube Agent            (if relevant tutorials exist)
     │         ├─ Aggregate into RESEARCH.md
     │         ├─ /qa-loop (qa-research) → GATE: does research have real evidence?
-    │         └─ ⏸ PAUSE: key insights + 3-5 clarification questions
+    │         └─ autonomous: auto-decide + proceed | guided: ⏸ PAUSE: clarification questions
     │
     ├─ [2/3] Phase 2 — Planning
     │         ├─ Extract structured data from RESEARCH.md → hexagonal architecture, BDD, test plan
     │         ├─ Generate PLAN.md
     │         ├─ /qa-loop (qa-plan) → GATE: BDD complete? architecture mapped?
-    │         └─ ⏸ PAUSE: present plan → wait for approval
+    │         └─ autonomous: auto-approve + proceed | guided: ⏸ PAUSE: wait for approval
     │
     └─ [3/3] Phase 3 — Implementation
               ├─ git checkout -b feature/[name]
@@ -129,8 +129,11 @@ Delegating to /[redesign|refactor|modernize] which has the complete pipeline for
 
 Call the corresponding skill with the received argument as context. Do not resume the `/build` pipeline after the skill completes.
 
-If the signals are ambiguous (e.g., "I want to improve the app" without indicating if it's UI, code or architecture), ask before delegating:
+If the signals are ambiguous (e.g., "I want to improve the app" without indicating if it's UI, code or architecture):
 
+**Autonomous mode:** Analyze the codebase to auto-detect intent. Check: does the UI look dated (→ /redesign)? Is code quality poor with no tests (→ /refactor)? Is the architecture a monolith that needs splitting (→ /modernize)? Default to `/build` (new feature) if unclear.
+
+**Guided mode:** Ask before delegating:
 ```
 What is your intent?
   (A) Modernize the app's interface/UX → /redesign
@@ -174,8 +177,8 @@ Infer from argument or use default:
 
 | Mode | Activation | Behavior |
 |------|------------|----------|
-| **autonomous** (default) | no flag, or `autonomous`, `auto` | AI as PM — deep research defines feature set. User validates at macro level. |
-| **guided** | `guided`, `guide me`, `ask me` | User guides — detailed interview, user defines features. |
+| **autonomous** (default) | no flag, or `autonomous`, `auto` | AI as PM — deep research defines feature set. **Zero pauses** — all decisions made by AI. Only escalates on unrecoverable errors. |
+| **guided** | `guided`, `guide me`, `ask me` | User guides — detailed interview, user defines features. Pauses for confirmation at each phase. |
 
 Record the mode for use in subsequent phases.
 
@@ -259,10 +262,9 @@ Adjust ✅/☐ and confirm to proceed.
 The ✅/☐ above is an example. Actual defaults are inferred per project.
 Save selected capabilities in `.claude/capabilities.json` for use in Phase 3 gates.
 
-4. Ask: **"Is this understanding correct? Can I proceed to research?"**
+4. **Autonomous mode:** Display the UNDERSTANDING block, then **proceed immediately to Phase 1** without waiting for confirmation. The AI makes all capability decisions based on context.
 
-Wait for confirmation before starting Phase 1.
-If the user corrects something, adjust the understanding and confirm again.
+   **Guided mode:** Ask: **"Is this understanding correct? Can I proceed to research?"** Wait for confirmation. If the user corrects something, adjust and confirm again.
 
 ---
 

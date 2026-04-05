@@ -52,7 +52,7 @@ Pass as argument: `/build guided`. Three scales: `MVP`, `Product`, `Scale`.
 
 ## Skills
 
-31 slash commands. Entry point: **`/build`** (auto-routes everything).
+30 slash commands. Entry point: **`/build`** (auto-routes everything).
 
 | Category | Skills |
 |----------|--------|

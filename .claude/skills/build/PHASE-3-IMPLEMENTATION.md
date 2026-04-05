@@ -155,6 +155,12 @@ rtk git commit -m "chore(scaffold): add design system and base layout"
 
 **If QA returns BLOCKER on auth:**
 
+**Autonomous mode:** Do NOT pause. Attempt automatic fix:
+1. If <= 2 BLOCKERs → spawn parallel fix agents (categorize by domain) → re-run gate
+2. If > 2 BLOCKERs → replace auth entirely with `/auth complete` → re-run gate
+3. If still failing after 3 fix iterations → escalate to user (this is the ONLY escalation point in autonomous mode)
+
+**Guided mode:**
 ```
 ⛔ AUTH GATE BLOCKER — Build paused
 
@@ -333,7 +339,7 @@ After complete implementation of ALL features:
    ```
    /qa-loop (scope: complete build, dimensions: qa-code + qa-security + qa-backend + qa-perf)
    ```
-   Only code/architecture dimensions — visual dimensions are covered by `/browser-qa` next.
+   Only code/architecture dimensions — visual dimensions are covered by the Self-Healing Loop (step 3d).
    Automatic fix loop until PASS.
 
    **Step 3c — Perf Audit (if load-tests or perf capability enabled):**
@@ -379,13 +385,25 @@ After complete implementation of ALL features:
         → PASS — exit loop, proceed to PM Validation
 
      5. If issues found:
-        → For each BLOCKER/MAJOR:
-           - Identify the file and probable cause
-           - Fix the specific issue (surgical — no refactoring)
-           - If backend error → fix API/service
-           - If frontend error → fix component/page
+        → Categorize each BLOCKER/MAJOR by domain:
+           - FRONTEND: component, page, CSS, layout, client-side JS
+           - BACKEND: API route, service, controller, server logic
+           - DATABASE: schema, query, migration, seed data
+           - INFRA: Docker config, env vars, port mapping, health check
+
+        → Spawn **parallel fix agents** (one per domain that has issues):
+           ```
+           Agent(Frontend Fix): fix all FRONTEND issues simultaneously
+           Agent(Backend Fix):  fix all BACKEND issues simultaneously
+           Agent(Database Fix): fix all DATABASE issues simultaneously
+           Agent(Infra Fix):    fix all INFRA issues simultaneously
+           ```
+           Max 4 parallel agents. Each receives the full issue list for its domain.
+           Each agent makes surgical fixes — no refactoring.
+
+        → Wait for all fix agents to complete
         → After all fixes:
-           rtk docker compose restart (if backend changed)
+           rtk docker compose restart
            → Next iteration
 
      6. If iteration = 5 and still failing:
@@ -401,10 +419,7 @@ After complete implementation of ALL features:
    - **The application MUST remain running** throughout and after the build
    - After fixing, ALWAYS verify Docker is healthy before next iteration
 
-4. **Fix loop** (if unit/BDD test failures): spawn targeted fix agents. Repeat until all green.
-   After each fix round, verify Docker is still healthy: `rtk docker compose ps`
-
-7. **PM Validation — Completeness Check (MANDATORY):**
+4. **PM Validation — Completeness Check (MANDATORY):**
 
    > **Emit:** `▶ [3/3] PM Validation — checking completeness`
 
@@ -463,7 +478,7 @@ If no extra capabilities enabled → proceed directly to commit.
 
 **Skip capabilities that are not in `.claude/capabilities.json` or where enabled = false.**
 
-4. **Final commit** (only capability gate changes, review fixes and browser audit fixes — features were already committed incrementally):
+5. **Final commit** (only capability gate changes, review fixes and browser audit fixes — features were already committed incrementally):
    ```bash
    rtk git add [specific files — never git add .]
    rtk git commit -m "chore(build): add capability gates, review fixes, and final QA adjustments
@@ -472,13 +487,13 @@ If no extra capabilities enabled → proceed directly to commit.
    ```
    If there are no pending changes (everything already committed in phase gates) → skip this commit.
 
-5. **Verify Docker is still running:**
+6. **Verify Docker is still running:**
    ```bash
    rtk docker compose ps   # confirm all services healthy
    ```
    If any service went down during fixes → `rtk docker compose up -d` again.
 
-6. **Present final summary to user:**
+7. **Present final summary to user:**
 
 ```
 BUILD COMPLETE
@@ -525,7 +540,7 @@ Next: rtk git checkout main && rtk git merge feature/[name]
 ## General Rules
 
 1. **Never skip research** — UI features without `RESEARCH.md` result in generic solutions without real grounding.
-2. **Mandatory pauses** after Phase 1 (clarification) and Phase 2 (plan approval). Outside these pauses, execution is fully autonomous.
+2. **Pauses** — In **guided** mode: pause after Phase 1 (clarification) and Phase 2 (plan approval). In **autonomous** mode: zero pauses — AI makes all decisions and only escalates on unrecoverable errors (Docker won't start, auth gate fails after 3 iterations).
 3. **Checkpoints** at the end of each phase and whenever estimated ~60k tokens (write checkpoint) / ~80k (compact recommended) consumed.
 4. **Progress markers** at all points (`▶ [N/3] Phase Name`).
 5. **Maximum autonomy within each phase** — architecture, naming, patterns and dependency decisions are made by agents without asking the user.

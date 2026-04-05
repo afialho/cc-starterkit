@@ -12,7 +12,7 @@
  * Static rules, skills, and token budget are in CLAUDE.md (always loaded).
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, unlinkSync, statSync } from 'fs';
 import { execSync } from 'child_process';
 
 async function readStdin() {
@@ -135,6 +135,30 @@ async function main() {
     ].join('\n');
   }
 
+  // Clean stale qa-gate-attempts.json (from abandoned builds)
+  const qaGateFile = '.claude/qa-gate-attempts.json';
+  if (existsSync(qaGateFile)) {
+    try {
+      const currentBranch = (() => {
+        try { return execSync('git branch --show-current', { stdio: 'pipe', timeout: 3000 }).toString().trim(); } catch { return ''; }
+      })();
+      // Reset if not on a feature branch (build finished or switched) or file is stale (>24h)
+      const fileAge = Date.now() - statSync(qaGateFile).mtimeMs;
+      const isStale = fileAge > 24 * 60 * 60 * 1000;
+      if (!currentBranch.startsWith('feature/') || isStale) {
+        unlinkSync(qaGateFile);
+      }
+    } catch { /* ignore cleanup errors */ }
+  }
+
+  // Check RTK CLI availability
+  let rtkStatus = '';
+  try {
+    execSync('which rtk', { stdio: 'pipe', timeout: 3000 });
+  } catch {
+    rtkStatus = '⚠️ RTK CLI is NOT installed. Do NOT prefix commands with `rtk`. Use commands directly: `git status`, `npm test`, `docker compose up -d`.';
+  }
+
   // Check agent-browser CLI availability
   let agentBrowserStatus = '';
   try {
@@ -163,6 +187,12 @@ async function main() {
     `## Architecture Pattern`,
     `${archPattern} — ${archRule}`,
   ];
+
+  if (rtkStatus) {
+    lines.push('');
+    lines.push('## RTK CLI');
+    lines.push(rtkStatus);
+  }
 
   if (agentBrowserStatus) {
     lines.push('');

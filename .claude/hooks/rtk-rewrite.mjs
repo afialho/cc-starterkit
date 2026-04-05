@@ -62,8 +62,23 @@ async function main() {
 
   const command = input.tool_input.command.trim();
 
-  // Skip multi-line scripts and already-RTK commands
-  if (command.startsWith('rtk ') || command.includes('\n')) {
+  // Skip multi-line scripts
+  if (command.includes('\n')) {
+    process.stdout.write(JSON.stringify(input));
+    return;
+  }
+
+  const rtkInstalled = isRtkInstalled();
+
+  // If RTK is NOT installed and command starts with "rtk " → block (guaranteed to fail)
+  if (!rtkInstalled && command.startsWith('rtk ')) {
+    const bareCommand = command.replace(/^rtk\s+/, '');
+    process.stderr.write(`⚠️ RTK is NOT installed. Use the command without the rtk prefix:\n  ${bareCommand}\n`);
+    process.exit(2);
+  }
+
+  // If command already has rtk prefix and RTK is installed → pass through
+  if (command.startsWith('rtk ')) {
     process.stdout.write(JSON.stringify(input));
     return;
   }
@@ -75,22 +90,20 @@ async function main() {
     return;
   }
 
-  const rtkInstalled = isRtkInstalled();
-
-  let context;
-  if (!rtkInstalled) {
-    context = `⚠️  RTK not installed. Install: npm install -g rtk — then use \`rtk ${command}\` for 60-90% token savings.`;
-  } else {
-    context = `📌 RULE-EFF-001: Use \`rtk ${command}\` instead of \`${command}\`.`;
+  // RTK is installed but command lacks prefix → suggest adding it
+  if (rtkInstalled) {
+    const context = `📌 RULE-EFF-001: Use \`rtk ${command}\` instead of \`${command}\`.`;
+    const existing = input.additionalContext || '';
+    const output = {
+      ...input,
+      additionalContext: existing ? `${existing}\n\n${context}` : context,
+    };
+    process.stdout.write(JSON.stringify(output));
+    return;
   }
 
-  const existing = input.additionalContext || '';
-  const output = {
-    ...input,
-    additionalContext: existing ? `${existing}\n\n${context}` : context,
-  };
-
-  process.stdout.write(JSON.stringify(output));
+  // RTK not installed, command doesn't have prefix → pass through silently
+  process.stdout.write(JSON.stringify(input));
 }
 
 main().catch((err) => {

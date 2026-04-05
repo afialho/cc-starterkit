@@ -34,7 +34,7 @@ Selected capabilities are saved in `.claude/capabilities.json` and drive which q
 
 ## Non-Negotiable Rules
 
-**RTK CLI** — Prefix ALL commands with `rtk`: `rtk git status`, `rtk npm test`, `rtk docker compose up -d`
+**RTK CLI** — If RTK is installed, prefix commands with `rtk`: `rtk git status`, `rtk npm test`, `rtk docker compose up -d`. If RTK is NOT installed (session-start will warn), use commands directly without prefix.
 
 **Docker** — ALL services run in Docker. `docker-compose.yml` at project root. Never connect to host services.
 ```bash
@@ -127,7 +127,11 @@ Entry point: **`/build`** — auto-routes based on context:
 - Code refactoring → `/refactor`
 - Architecture change → `/modernize`
 
-**Operation modes:** `autonomous` (default — AI as PM, deep research defines feature set) | `guided` (user guides, detailed interview). Pass as argument: `/build guided`.
+**Operation modes:**
+- `autonomous` (default) — AI as PM. Zero pauses. Research defines feature set, AI makes all decisions, proceeds without confirmation. Only escalates on unrecoverable errors (Docker won't start after 3 attempts, auth gate BLOCKER after 3 fix loops).
+- `guided` — User guides. Pauses after each phase for confirmation (understanding, research clarification, plan approval).
+
+Pass as argument: `/build guided`. Default is `autonomous`.
 
 **Feature routing** — during implementation, `/build` delegates to specialized skills:
 

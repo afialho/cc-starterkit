@@ -97,19 +97,21 @@ Before the pause, execute:
 ```
 If `qa-research` returns BLOCKER → fix research gaps (spawn an additional research agent) before presenting to the user.
 
-## Mandatory Pause After Research
+## Post-Research Presentation
 
 After generating `RESEARCH.md` and passing the gate, present to the user:
 
 1. **Key Insights** (extracted from RESEARCH.md, 5-10 lines)
-2. **3-5 clarification questions** based on findings — focused on gaps, trade-offs or decisions that the research revealed and that require human input
+2. **3-5 clarification questions** based on findings — focused on gaps, trade-offs or decisions that the research revealed
 
 Examples of relevant questions:
 - "The research found two approaches: X (simpler) and Y (more scalable). Which do you prefer?"
 - "APIs A and B cover the same use case. A has better DX, B has better rate limits. Any preference?"
 - "The feature touches authentication — research revealed that the project's pattern uses JWT. Do you confirm we should follow this pattern?"
 
-Wait for user response before starting Phase 2.
+**Autonomous mode:** Present the Key Insights, then **answer your own clarification questions** using research evidence (choose the approach with strongest evidence or most industry adoption). Log decisions in RESEARCH.md under a `## Autonomous Decisions` section. Proceed immediately to Phase 2.
+
+**Guided mode:** Wait for user response before starting Phase 2.
 
 > **Checkpoint after Phase 1:**
 > Write `.claude/checkpoint.md`:
